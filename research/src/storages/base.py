@@ -14,7 +14,12 @@ class Storage(ABC):
         fav_movies: list[FavMovie],
         movies_score: list[MovieScore]
     ):
-        """Наполнить хранилище."""
+        """Наполнить хранилище.
+
+        Args:
+            fav_movies: список избранных фильмов
+            movies_score: список фильмов с оценками
+        """
 
     @abstractmethod
     def add_movie_score(self, movie_score: MovieScore):
