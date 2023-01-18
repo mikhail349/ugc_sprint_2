@@ -9,6 +9,14 @@ class Storage(ABC):
     """Абстрактное хранилище."""
 
     @abstractmethod
+    def populate(
+        self,
+        fav_movies: list[FavMovie],
+        movies_score: list[MovieScore]
+    ):
+        """Наполнить хранилище."""
+
+    @abstractmethod
     def add_movie_score(self, movie_score: MovieScore):
         """Поставить оценку фильму.
 

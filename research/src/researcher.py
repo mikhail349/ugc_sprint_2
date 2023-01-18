@@ -29,21 +29,29 @@ class Researcher:
             create_movie() for _ in range(researcher_config.movie_amount)
         ]
 
+        fav_movies = []
+        movies_score = []
+
         for user in self.users:
             for movie in self.movies:
-                self.storage.add_fav_movie(
+                fav_movies.append(
                     create_fav_movie(
                         user_id=user.id,
                         movie_id=movie.id
                     )
                 )
 
-                self.storage.add_movie_score(
+                movies_score.append(
                     create_movie_score(
                         user_id=user.id,
                         movie_id=movie.id
                     )
                 )
+
+        self.storage.populate(
+            fav_movies=fav_movies,
+            movies_score=movies_score
+        )
 
     @counter(iterations=researcher_config.read_amount)
     def read_fav_movies(self):

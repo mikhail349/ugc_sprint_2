@@ -21,7 +21,7 @@ class Collection(str, enum.Enum):
     """Оценки фильмов."""
 
 
-class MongoStorage(Storage):
+class Mongo(Storage):
     """Хранилище MongoDB."""
 
     def __init__(self) -> None:
@@ -31,6 +31,24 @@ class MongoStorage(Storage):
         )
         self.client = pymongo.MongoClient(uri)  # type: pymongo.MongoClient
         self.db = self.client[mongo_config.db]
+
+    def populate(
+        self,
+        fav_movies: list[FavMovie],
+        movies_score: list[MovieScore]
+    ):
+        self.insert_many(
+            collection=Collection.MOVIES_SCORE,
+            data=[row.dict() for row in movies_score]
+        )
+        self.insert_many(
+            collection=Collection.FAV_MOVIES,
+            data=[row.dict() for row in fav_movies]
+        )
+
+    def insert_many(self, collection: Collection, data: list):
+        coll = self.get_collection(collection)
+        coll.insert_many(data)
 
     def get_collection(self, collection: Collection) -> collection.Collection:
         """Получить коллецию из MongoDB с настроенным кодеком для работы с UUID.
