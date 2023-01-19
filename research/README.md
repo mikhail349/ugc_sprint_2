@@ -42,7 +42,6 @@ CREATE TABLE shard.movies_score (id String, user_id String, movie_id String, sco
 CREATE TABLE replica.movies_score (id String, user_id String, movie_id String, score UInt8) Engine=ReplicatedMergeTree('/clickhouse/tables/shard2/movies_score', 'replica_2') PARTITION BY movie_id ORDER BY id;
 CREATE TABLE default.movies_score (id String, user_id String, movie_id String, score UInt8) ENGINE = Distributed('company_cluster', '', movies_score, rand());
 exit
-exit
 ```
 
 Подключиться к
@@ -61,7 +60,6 @@ CREATE TABLE default.fav_movies (id String, user_id String, movie_id String) ENG
 CREATE TABLE shard.movies_score (id String, user_id String, movie_id String, score UInt8) Engine=ReplicatedMergeTree('/clickhouse/tables/shard2/movies_score', 'replica_1') PARTITION BY movie_id ORDER BY id;
 CREATE TABLE replica.movies_score (id String, user_id String, movie_id String, score UInt8) Engine=ReplicatedMergeTree('/clickhouse/tables/shard1/movies_score', 'replica_2') PARTITION BY movie_id ORDER BY id;
 CREATE TABLE default.movies_score (id String, user_id String, movie_id String, score UInt8) ENGINE = Distributed('company_cluster', '', movies_score, rand());
-exit
 exit
 ```
 7. Запустить замер хранилищ `python src/main.py`

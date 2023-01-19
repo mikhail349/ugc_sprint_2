@@ -11,29 +11,6 @@ from src.configs.clickhouse import clickhouse_config
 class Clickhouse(Storage):
     """Класс хранилища Clickhouse."""
 
-    def __init__(self):
-        client = get_client()
-        '''
-        client.execute(
-            f"CREATE DATABASE IF NOT EXISTS {clickhouse_config.db_name} "
-            f"ON CLUSTER {clickhouse_config.cluster_name}"
-        )
-        client.execute(
-            f"CREATE TABLE IF NOT EXISTS "
-            f"{clickhouse_config.db_name}.fav_movies "
-            f"ON CLUSTER {clickhouse_config.cluster_name} "
-            f"(id String, user_id String, movie_id String) "
-            f"Engine=MergeTree() ORDER BY id"
-        )
-        client.execute(
-            f"CREATE TABLE IF NOT EXISTS "
-            f"{clickhouse_config.db_name}.movies_score "
-            f"ON CLUSTER {clickhouse_config.cluster_name} "
-            f"(id String, user_id String, movie_id String, score UInt8) "
-            f"Engine=MergeTree() ORDER BY id"
-        )
-        '''
-
     def populate(
         self,
         fav_movies: list[FavMovie],
