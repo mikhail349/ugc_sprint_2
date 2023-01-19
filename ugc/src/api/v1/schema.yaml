@@ -1,0 +1,71 @@
+openapi: 3.0.3
+info:
+  title: API хранилища событий
+  description: |-
+    Возможности:
+    - Создать событие
+    
+    Доступные события:
+    - view - просмотр фильмов
+  termsOfService: http://swagger.io/terms/
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: /api/v1
+tags:
+  - name: просмотр
+components:
+  schemas:
+    Message:
+      required:
+        - msg
+      type: object
+      properties:
+        msg:
+          type: string
+          example: Missing Authorization Header.
+
+    ViewEvent:
+      type: object
+      properties:
+        movie_id:
+          type: string
+          format: uuid
+          example: Gcc55edda7acd4128877d02b94430896a
+        timestamp:
+          type: integer
+          example: 1611039931
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    UnauthorizedError:
+      description: Access-token отсутствует/невалидный или срок действия истек
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+
+paths:
+  /events/view:
+    post:
+      tags:
+        - просмотр
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewEvent'
+        required: true
+      responses:
+        '200':
+          description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'

@@ -1,0 +1,18 @@
+@startuml as_is
+skinparam databaseBackgroundColor Yellow
+
+actor Клиент as Client
+actor Аналитик as Analyst
+
+component ETL
+component UGC_API
+
+database Kafka
+database ClickHouse
+
+Client -right-> UGC_API: передача данных о \nсобытиях
+UGC_API -down-> Kafka: сохранение\nсобытий
+Kafka -down-> ETL: получение\nданных
+ETL -left-> ClickHouse: загрузка данных
+ClickHouse -left-> Analyst: анализ данных
+@enduml

@@ -1,0 +1,31 @@
+@startuml as_is
+
+skinparam databaseBackgroundColor Yellow
+
+actor Администратор as Admin
+actor Клиент as Client
+component AdminWebApp
+component ETL
+component SearchService
+component AuthService
+database Postgres as Postgres1
+database Postgres as Postgres2
+database ElasticSearch
+database Redis as Redis1
+database Redis as Redis2
+database Redis as Redis3
+
+Admin <-> AdminWebApp: администрирование\nкаталога фильмов
+AdminWebApp <-down-> Postgres1: crud\nфильмов
+Postgres1 -left-> ETL: получение\nданных
+ETL -down-> ElasticSearch: загрузка\nданных
+ETL <-left-> Redis1: read/write\nсостояния
+
+ElasticSearch -down-> SearchService: получение\nданных
+SearchService <-right-> Redis2: read/write\nкэша
+SearchService -down-> Client: получение данных\nпо фильмам
+AuthService -right-> Client: получение\nтокенов
+AuthService <-down-> Postgres2: crud\nправ, ролей
+AuthService <-up-> Redis3: read/write refresh-\nи невалидных\naccess-токенов
+
+@enduml
