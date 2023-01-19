@@ -18,7 +18,6 @@ class Researcher:
     """Класс исследования хранилища."""
     storage: Storage
 
-    @counter()
     def populate(self):
         """Наполнить хранилище данными."""
 
@@ -49,21 +48,31 @@ class Researcher:
             movies_score=movies_score
         )
 
-    @counter(iterations=researcher_config.read_amount)
+    @counter(iterations=researcher_config.read_write_iterations)
+    def write_fav_movie(self):
+        """Запись избранного фильма."""
+        self.storage.add_fav_movie(create_fav_movie())
+
+    @counter(iterations=researcher_config.read_write_iterations)
+    def write_movie_score(self):
+        """Запись оценки фильма."""
+        self.storage.add_movie_score(create_movie_score())
+
+    @counter(iterations=researcher_config.read_write_iterations)
     def read_fav_movies(self):
         """Чтение избранных фильмов пользователей."""
         random_ix = random.randint(0, len(self.users) - 1)
         user = self.users[random_ix]
         self.storage.get_fav_movies(user_id=user.id)
 
-    @counter(iterations=researcher_config.read_amount)
+    @counter(iterations=researcher_config.read_write_iterations)
     def read_movie_score(self):
         """Чтение оценок фильмов."""
         random_ix = random.randint(0, len(self.movies) - 1)
         movie = self.movies[random_ix]
         self.storage.get_movie_score(movie_id=movie.id)
 
-    @counter(iterations=researcher_config.read_amount)
+    @counter(iterations=researcher_config.read_write_iterations)
     def read_write_movie_score(self):
         """Чтение оценок фильмов в реальном времени."""
         def _write():
@@ -97,6 +106,8 @@ class Researcher:
         """Запустить измерение."""
         logging.info(f"Research of {self.storage.__class__.__name__}")
         self.populate()
+        self.write_fav_movie()
+        self.write_movie_score()
         self.read_fav_movies()
         self.read_movie_score()
         self.read_write_movie_score()

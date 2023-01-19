@@ -12,10 +12,6 @@ class MongoConfig(BaseConfig):
     """Номер порта."""
     db: str = Field("movies", env="MONGODB_DATABASE")
     """Название БД."""
-    username: str = Field("root", env="MONGODB_USERNAME")
-    """Имя пользователя."""
-    password: str = Field("example", env="MONGODB_PASSWORD")
-    """Пароль."""
 
 
 mongo_config = MongoConfig()

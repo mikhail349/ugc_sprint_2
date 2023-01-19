@@ -15,8 +15,8 @@ class ResearcherConfig(BaseConfig):
     """Кол-во фильмов."""
     scores_per_movie_amount: int = Field(100,
                                          env="SCORES_PER_MOVIE_AMOUNT")
-    read_amount: int = Field(5, env="READ_AMOUNT")
-    """Кол-во итераций чтения данных."""
+    read_write_iterations: int = Field(5, env="READ_WRITE_ITERATIONS")
+    """Кол-во итераций чтения и записи данных."""
 
 
 researcher_config = ResearcherConfig()

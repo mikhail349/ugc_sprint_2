@@ -9,7 +9,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 def main():
-    storages = [Clickhouse(), Mongo()]
+    storages = [Mongo(), Clickhouse()]
     for storage in storages:
         researcher = Researcher(storage)
         researcher.perform()

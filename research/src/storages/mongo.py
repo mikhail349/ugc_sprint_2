@@ -26,8 +26,7 @@ class Mongo(Storage):
 
     def __init__(self) -> None:
         uri = (
-            f'mongodb://{mongo_config.username}:{mongo_config.password}'
-            f'@{mongo_config.host}:{mongo_config.port}'
+            f'mongodb://{mongo_config.host}:{mongo_config.port}'
         )
         self.client = pymongo.MongoClient(uri)  # type: pymongo.MongoClient
         self.db = self.client[mongo_config.db]
