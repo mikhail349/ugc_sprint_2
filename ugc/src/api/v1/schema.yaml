@@ -3,10 +3,9 @@ info:
   title: API хранилища событий
   description: |-
     Возможности:
-    - Создать событие
-    
-    Доступные события:
-    - view - просмотр фильмов
+    - Добавить событие просмотра фильма до определенного времени
+    - CRUD оценки фильма
+
   termsOfService: http://swagger.io/terms/
   version: 1.0.0
 externalDocs:
@@ -15,7 +14,9 @@ externalDocs:
 servers:
   - url: /api/v1
 tags:
-  - name: просмотр
+  - name: просмотр фильма
+  - name: оценка фильма
+  - name: избранные фильмы
 components:
   schemas:
     Message:
@@ -33,10 +34,42 @@ components:
         movie_id:
           type: string
           format: uuid
-          example: Gcc55edda7acd4128877d02b94430896a
+          example: Gcc55edda-7acd-4128-877d-02b94430896a
         timestamp:
           type: integer
           example: 1611039931
+          
+    FavMovie:
+      type: object
+      properties:
+        movie_id:
+          type: string
+          format: uuid
+          example: Gcc55edda-7acd-4128-877d-02b94430896a
+
+    MovieRating:
+      type: object
+      properties:
+        movie_id:
+          type: string
+          format: uuid
+          example: Gcc55edda-7acd-4128-877d-02b94430896a
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 10
+          example: 3
+          
+    MovieRatingResponse:
+      type: object
+      properties:
+        avg_rating:
+            type: number
+            format: float
+            nullable: true
+            minimum: 0
+            maximum: 10
+            example: 3.5
   securitySchemes:
     BearerAuth:
       type: http
@@ -50,12 +83,23 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Message'
+            
+  parameters:
+    movieID:
+      name: movie_id
+      in: path
+      description: ID фильма
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: Gcc55edda-7acd-4128-877d-02b94430896a
 
 paths:
-  /events/view:
+  /views:
     post:
       tags:
-        - просмотр
+        - просмотр фильма
       security:
         - BearerAuth: []
       requestBody:
@@ -67,5 +111,114 @@ paths:
       responses:
         '200':
           description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /ratings:
+    post:
+      tags:
+        - оценка фильма
+      description: Поставить оценку фильму 
+      security:
+      - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieRating'
+      responses:
+        '200':
+          description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    put:
+      tags:
+        - оценка фильма
+      description: Изменить оценку фильму
+      security:
+      - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieRating'
+      responses:
+        '200':
+          description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /ratings/{movie_id}:
+    get:
+      tags:
+        - оценка фильма
+      description: Получить среднюю оценку фильма
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieRatingResponse'
+    delete:
+      tags:
+        - оценка фильма
+      description: Удалить оценку фильму
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /favs/{movie_id}:
+    post:
+      tags:
+        - избранные фильмы
+      description: Добавить фильм в избранное
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - избранные фильмы
+      description: Удалить фильм из избранного
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /favs:
+    get:
+      tags:
+        - избранные фильмы
+      description: Получить список избранных фильмов
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+                example: [Gcc55edda-7acd-4128-877d-02b94430896a, 612452e1-5151-4124-b408-11a29a0a64e6]
         '401':
           $ref: '#/components/responses/UnauthorizedError'
