@@ -1,4 +1,5 @@
 from http import HTTPStatus
+import uuid
 
 from flask import Blueprint, current_app, request, Response
 
@@ -6,15 +7,14 @@ from src.storages.base import Storage
 from src.services.auth import username_required
 
 
-views = Blueprint("views", __name__,  url_prefix="/views")
+movies = Blueprint("movies", __name__,  url_prefix="/movies")
 
 
-@views.route("/", methods=["POST"])
+@movies.route("/<movie_id>/views", methods=["POST"])
 @username_required
-def create_view_event(username: str):
+def create_view(username: str, movie_id: uuid.UUID):
     """Создать событие просмотра в хранилище."""
 
-    movie_id = request.json.get("movie_id")
     timestamp = request.json.get("timestamp")
 
     storage: Storage = current_app.config.get("storage")

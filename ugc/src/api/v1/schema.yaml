@@ -127,7 +127,7 @@ components:
       schema:
         type: string
         format: uuid
-        example: Gcc55edda-7acd-4128-877d-02b94430896a
+        example: 6ffefd8e-a018-e811-bbf9-60f67727d806
     reviewID:
       name: review_id
       in: path
@@ -136,7 +136,7 @@ components:
       schema:
         type: string
         format: uuid
-        example: Gcc55edda-7acd-4128-877d-02b94430896a
+        example: 6ffefd8e-a018-e811-bbf9-60f67727d806
 
 paths:
   /movies/{movie_id}/views:
@@ -312,7 +312,7 @@ paths:
                 items:
                   type: string
                   format: uuid
-                example: [Gcc55edda-7acd-4128-877d-02b94430896a, 612452e1-5151-4124-b408-11a29a0a64e6]
+                example: [6ffefd8e-a018-e811-bbf9-60f67727d806, Gcc55edda-7acd-4128-877d-02b94430896a]
         '401':
           $ref: '#/components/responses/UnauthorizedError'
   /movies/{movie_id}/reviews/{review_id}/ratings:
