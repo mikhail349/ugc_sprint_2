@@ -11,14 +11,60 @@ docker-compose exec configsvr01 sh -c "mongosh < /scripts/init-configserver.js"
 docker-compose exec shard01-a sh -c "mongosh < /scripts/init-shard01.js"
 docker-compose exec shard02-a sh -c "mongosh < /scripts/init-shard02.js"
 docker-compose exec router01 sh -c "mongosh < /scripts/init-router.js"
-
-docker-compose exec router01 mongosh --port 27017
->> sh.enableSharding("movies")
->> db.adminCommand( { shardCollection: "movies.fav_movies", key: { user_id: "hashed" } } )
->> db.adminCommand( { shardCollection: "movies.movies_score", key: { movie_id: "hashed" } } )
->> exit()
 ```
-6. Запустить замер хранилищ `python src/main.py`
+Подключиться к маршрутизатору
+```
+docker-compose exec router01 mongosh --port 27017
+```
+и выполнить в консоли
+```
+sh.enableSharding("movies")
+db.adminCommand( { shardCollection: "movies.fav_movies", key: { user_id: "hashed" } } )
+db.adminCommand( { shardCollection: "movies.movies_score", key: { movie_id: "hashed" } } )
+exit()
+```
+6. Настроить кластер ClickHouse
+
+Подключиться к
+```
+docker exec -it clickhouse-node1 sh -c "clickhouse-client"
+```
+и выполнить в консоли
+```
+CREATE DATABASE shard;
+CREATE DATABASE replica;
+
+CREATE TABLE shard.fav_movies (id String, user_id String, movie_id String) Engine=ReplicatedMergeTree('/clickhouse/tables/shard1/fav_movies', 'replica_1') PARTITION BY user_id ORDER BY id;
+CREATE TABLE replica.fav_movies (id String, user_id String, movie_id String) Engine=ReplicatedMergeTree('/clickhouse/tables/shard2/fav_movies', 'replica_2') PARTITION BY user_id ORDER BY id;
+CREATE TABLE default.fav_movies (id String, user_id String, movie_id String) ENGINE = Distributed('company_cluster', '', fav_movies, rand());
+
+CREATE TABLE shard.movies_score (id String, user_id String, movie_id String, score UInt8) Engine=ReplicatedMergeTree('/clickhouse/tables/shard1/movies_score', 'replica_1') PARTITION BY movie_id ORDER BY id;
+CREATE TABLE replica.movies_score (id String, user_id String, movie_id String, score UInt8) Engine=ReplicatedMergeTree('/clickhouse/tables/shard2/movies_score', 'replica_2') PARTITION BY movie_id ORDER BY id;
+CREATE TABLE default.movies_score (id String, user_id String, movie_id String, score UInt8) ENGINE = Distributed('company_cluster', '', movies_score, rand());
+exit
+exit
+```
+
+Подключиться к
+```
+docker exec -it clickhouse-node3 sh -c "clickhouse-client"
+```
+и выполнить в консоли
+```
+CREATE DATABASE shard;
+CREATE DATABASE replica;
+
+CREATE TABLE shard.fav_movies (id String, user_id String, movie_id String) Engine=ReplicatedMergeTree('/clickhouse/tables/shard2/fav_movies', 'replica_1') PARTITION BY user_id ORDER BY id;
+CREATE TABLE replica.fav_movies (id String, user_id String, movie_id String) Engine=ReplicatedMergeTree('/clickhouse/tables/shard1/fav_movies', 'replica_2') PARTITION BY user_id ORDER BY id;
+CREATE TABLE default.fav_movies (id String, user_id String, movie_id String) ENGINE = Distributed('company_cluster', '', fav_movies, rand());
+
+CREATE TABLE shard.movies_score (id String, user_id String, movie_id String, score UInt8) Engine=ReplicatedMergeTree('/clickhouse/tables/shard2/movies_score', 'replica_1') PARTITION BY movie_id ORDER BY id;
+CREATE TABLE replica.movies_score (id String, user_id String, movie_id String, score UInt8) Engine=ReplicatedMergeTree('/clickhouse/tables/shard1/movies_score', 'replica_2') PARTITION BY movie_id ORDER BY id;
+CREATE TABLE default.movies_score (id String, user_id String, movie_id String, score UInt8) ENGINE = Distributed('company_cluster', '', movies_score, rand());
+exit
+exit
+```
+7. Запустить замер хранилищ `python src/main.py`
 
 ## Результаты исследования
 

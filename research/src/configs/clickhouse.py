@@ -8,7 +8,7 @@ class ClickhouseConfig(BaseConfig):
 
     host: str = Field("127.0.0.1", env="CLICKHOUSE_HOST")
     """Хост для подключения."""
-    db_name: str = Field("movies", env="CLICKHOUSE_DB")
+    db_name: str = Field("default", env="CLICKHOUSE_DB")
     """Название базы данных."""
     cluster_name = Field("company_cluster", env="CLICKHOUSE_CLUSTER")
     """Название кластера."""

@@ -13,7 +13,7 @@ class Clickhouse(Storage):
 
     def __init__(self):
         client = get_client()
-
+        '''
         client.execute(
             f"CREATE DATABASE IF NOT EXISTS {clickhouse_config.db_name} "
             f"ON CLUSTER {clickhouse_config.cluster_name}"
@@ -32,6 +32,7 @@ class Clickhouse(Storage):
             f"(id String, user_id String, movie_id String, score UInt8) "
             f"Engine=MergeTree() ORDER BY id"
         )
+        '''
 
     def populate(
         self,
