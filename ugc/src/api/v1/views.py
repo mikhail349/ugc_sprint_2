@@ -6,10 +6,10 @@ from src.storages.base import Storage
 from src.services.auth import username_required
 
 
-event = Blueprint("events", __name__,  url_prefix="/events")
+views = Blueprint("views", __name__,  url_prefix="/views")
 
 
-@event.route("/view", methods=["POST"])
+@views.route("/", methods=["POST"])
 @username_required
 def create_view_event(username: str):
     """Создать событие просмотра в хранилище."""
