@@ -6,6 +6,8 @@ info:
     - Добавить событие просмотра фильма до определенного времени
     - Добавить, изменить, удалить и получить оценку фильма
     - Добавить, удалить и получить список избранных фильмов
+    - Добавить, получить список рецензий к фильму
+    - Поставить лайк или дизлайк рецензии
 
   termsOfService: http://swagger.io/terms/
   version: 1.0.0
@@ -18,6 +20,7 @@ tags:
   - name: просмотр фильма
   - name: оценка фильма
   - name: избранные фильмы
+  - name: рецензии
 components:
   schemas:
     Message:
@@ -29,32 +32,62 @@ components:
           type: string
           example: Missing Authorization Header.
 
-    ViewEvent:
+    View:
       type: object
       properties:
-        movie_id:
-          type: string
-          format: uuid
-          example: Gcc55edda-7acd-4128-877d-02b94430896a
         timestamp:
           type: integer
           example: 1611039931
           
-    FavMovie:
+    Review:
       type: object
       properties:
-        movie_id:
+        text:
           type: string
-          format: uuid
-          example: Gcc55edda-7acd-4128-877d-02b94430896a
+          example: Some text...
+  
+    ReviewResponse:
+      type: object
+      properties:
+        text:
+          type: string
+          example: Some text...
+        created_at:
+          type: string
+          format: datetime
+          example: 2017-07-21T17:32:28Z
+        creator:
+          type: object
+          properties:
+            username:
+              type: string
+              example: ivan123
+        movie_rating:
+          type: integer
+          minimum: 0
+          maximum: 10
+          example: 9
+        review_rating:
+          type: object
+          properties:
+            likes:
+              type: integer
+              example: 2
+            dislikes:
+              type: integer
+              example: 1
+          
+    ReviewRating:
+      type: object
+      properties:
+        rating:
+          type: integer
+          example: 10
+          enum: [0, 10]
 
     MovieRating:
       type: object
       properties:
-        movie_id:
-          type: string
-          format: uuid
-          example: Gcc55edda-7acd-4128-877d-02b94430896a
         rating:
           type: integer
           minimum: 0
@@ -95,31 +128,44 @@ components:
         type: string
         format: uuid
         example: Gcc55edda-7acd-4128-877d-02b94430896a
+    reviewID:
+      name: review_id
+      in: path
+      description: ID рецензии
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: Gcc55edda-7acd-4128-877d-02b94430896a
 
 paths:
-  /views:
+  /movies/{movie_id}/views:
     post:
       tags:
         - просмотр фильма
       description: Добавить событие просмотра фильма до определенного времени
       security:
         - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/movieID'
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ViewEvent'
+              $ref: '#/components/schemas/View'
         required: true
       responses:
         '200':
           description: Успешно
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-  /ratings:
+  /movies/{movie_id}/ratings:
     post:
       tags:
         - оценка фильма
-      description: Поставить оценку фильму 
+      description: Поставить оценку фильму
+      parameters:
+        - $ref: '#/components/parameters/movieID'
       security:
       - BearerAuth: []
       requestBody:
@@ -137,7 +183,9 @@ paths:
         - оценка фильма
       description: Изменить оценку фильму
       security:
-      - BearerAuth: []
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/movieID'
       requestBody:
         content:
           application/json:
@@ -148,7 +196,6 @@ paths:
           description: Успешно
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-  /ratings/{movie_id}:
     get:
       tags:
         - оценка фильма
@@ -175,7 +222,51 @@ paths:
           description: Успешно
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-  /favs/{movie_id}:
+  /movies/{movie_id}/reviews:
+    post:
+      tags:
+        - рецензии
+      description: Добавить рецензию к фильму
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '200':
+          description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    get:
+      tags:
+        - рецензии
+      description: Получить список рецензий фильма
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - newest
+              - oldest
+              - most_liked
+              - most_disliked
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewResponse'
+  /movies/{movie_id}/favs:
     post:
       tags:
         - избранные фильмы
@@ -202,7 +293,7 @@ paths:
           description: Успешно
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-  /favs:
+  /movies/favs:
     get:
       tags:
         - избранные фильмы
@@ -224,3 +315,24 @@ paths:
                 example: [Gcc55edda-7acd-4128-877d-02b94430896a, 612452e1-5151-4124-b408-11a29a0a64e6]
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+  /movies/{movie_id}/reviews/{review_id}/ratings:
+    post:
+      tags:
+        - рецензии
+      description: Поставить лайк (10) или дизлайк (0) рецензии к фильму
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+        - $ref: '#/components/parameters/reviewID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRating'
+      responses:
+        '200':
+          description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      
