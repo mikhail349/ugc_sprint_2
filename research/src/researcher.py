@@ -33,20 +33,16 @@ class Researcher:
         movies_score = []
 
         for user in self.users:
-            for movie in self.movies:
-                fav_movies.append(
-                    create_fav_movie(
-                        user_id=user.id,
-                        movie_id=movie.id
-                    )
-                )
+            fav_movies.extend([
+                create_fav_movie(user_id=user.id)
+                for _ in range(researcher_config.fav_movies_per_user_amount)
+            ])
 
-                movies_score.append(
-                    create_movie_score(
-                        user_id=user.id,
-                        movie_id=movie.id
-                    )
-                )
+        for movie in self.movies:
+            movies_score.extend([
+                create_movie_score(movie_id=movie.id)
+                for _ in range(researcher_config.scores_per_movie_amount)
+            ])
 
         self.storage.populate(
             fav_movies=fav_movies,
