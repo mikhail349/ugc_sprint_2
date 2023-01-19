@@ -11,17 +11,7 @@ docker-compose exec configsvr01 sh -c "mongosh < /scripts/init-configserver.js"
 docker-compose exec shard01-a sh -c "mongosh < /scripts/init-shard01.js"
 docker-compose exec shard02-a sh -c "mongosh < /scripts/init-shard02.js"
 docker-compose exec router01 sh -c "mongosh < /scripts/init-router.js"
-```
-Подключиться к маршрутизатору
-```
-docker-compose exec router01 mongosh --port 27017
-```
-и выполнить в консоли
-```
-sh.enableSharding("movies")
-db.adminCommand( { shardCollection: "movies.fav_movies", key: { user_id: "hashed" } } )
-db.adminCommand( { shardCollection: "movies.movies_score", key: { movie_id: "hashed" } } )
-exit()
+docker-compose exec router01 sh -c "mongosh < /scripts/enable-sharding.js"
 ```
 6. Настроить кластер ClickHouse
 
