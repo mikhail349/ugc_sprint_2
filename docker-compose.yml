@@ -85,4 +85,4 @@ services:
       - kafka
       - clickhouse-node1
     env_file:
-      - .env
+      - ./etl/.env

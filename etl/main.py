@@ -61,7 +61,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     kafka_consumer = KafkaConsumer(
         kafka_config.topic_name,
-        bootstrap_servers=[f"{kafka_config.host}:{kafka_config.port}"],
+        bootstrap_servers=kafka_config.servers.split(","),
         auto_offset_reset="earliest",
         group_id="etl",
         enable_auto_commit=False,
