@@ -6,11 +6,6 @@ from src.storages.base import Storage
 from src.models.fav_movie import FavMovie
 from src.models.movie_score import MovieScore
 from src.configs.clickhouse import clickhouse_config
-from src.configs.researcher import researcher_config
-from src.factories.user import create_user
-from src.factories.movie import create_movie
-from src.factories.fav_movie import create_fav_movie
-from src.factories.movie_score import create_movie_score
 
 
 class Clickhouse(Storage):
