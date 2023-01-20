@@ -2,12 +2,15 @@ from flask import Blueprint, Flask
 
 from src.api.v1.movies import movies
 from src.api.v1.openapi import openapi
+
 from src.services.auth import init_auth
+from src.services.streamer import init_streamer
 from src.services.storage import init_storage
 
 
 app = Flask(__name__)
 init_auth(app)
+init_streamer(app)
 init_storage(app)
 
 api = Blueprint("api", __name__, url_prefix="/api")

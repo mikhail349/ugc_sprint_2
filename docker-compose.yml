@@ -1,5 +1,18 @@
 version: "3"
 services:
+  mongo:
+    image: mongo
+    volumes:
+      - mongodb:/data/db
+    ports:
+      - 27117:27017
+  mongo-web:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
   zookeeper:
     image: 'bitnami/zookeeper:latest'
     environment:
@@ -52,7 +65,7 @@ services:
       - "8123:8123"
       - "9000:9000"
     volumes:
-      - ./clickhouse/data/node1:/etc/clickhouse-server
+      - ./etl/clickhouse/data/node1:/etc/clickhouse-server
     depends_on:
       - zookeeper
   clickhouse-node2:
@@ -60,7 +73,7 @@ services:
     container_name: clickhouse-node2
     hostname: clickhouse-node2
     volumes:
-      - ./clickhouse/data/node2:/etc/clickhouse-server
+      - ./etl/clickhouse/data/node2:/etc/clickhouse-server
     depends_on:
       - zookeeper
   clickhouse-node3:
@@ -68,7 +81,7 @@ services:
     container_name: clickhouse-node3
     hostname: clickhouse-node3
     volumes:
-      - ./clickhouse/data/node3:/etc/clickhouse-server
+      - ./etl/clickhouse/data/node3:/etc/clickhouse-server
     depends_on:
       - zookeeper
   clickhouse-node4:
@@ -76,7 +89,7 @@ services:
     container_name: clickhouse-node4
     hostname: clickhouse-node4
     volumes:
-      - ./clickhouse/data/node4:/etc/clickhouse-server
+      - ./etl/clickhouse/data/node4:/etc/clickhouse-server
     depends_on:
       - zookeeper
   etl:
@@ -86,3 +99,6 @@ services:
       - clickhouse-node1
     env_file:
       - ./etl/.env
+
+volumes:
+  mongodb:

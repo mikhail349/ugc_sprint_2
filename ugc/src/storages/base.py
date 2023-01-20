@@ -1,20 +1,84 @@
 from abc import ABC, abstractmethod
+import uuid
 
 
 class Storage(ABC):
-    """Абстрактное хранилище событий."""
+    """Абстрактное хранилище."""
 
     @abstractmethod
-    def create_view_event(
+    def add_rating(
         self,
+        movie_id: uuid.UUID,
         username: str,
-        movie_id: str,
-        timestamp: int
+        rating: int
     ) -> None:
-        """Добавить событие просмотра.
+        """Поставить оценку фильму.
 
         Args:
-            username: имя пользователя
             movie_id: ИД фильма
-            timestamp: кол-во просмотренных секунд
+            username: имя пользователя
+            rating: рейтинг
+
+        Returns:
+            Any: id созданной записи
+
+        """
+
+    @abstractmethod
+    def edit_rating(
+        self,
+        movie_id: uuid.UUID,
+        username: str,
+        rating: int
+    ) -> None:
+        """Изменить оценку фильма.
+
+        Args:
+            movie_id: ИД фильма
+            username: имя пользователя
+            rating: рейтинг
+
+        """
+
+    @abstractmethod
+    def delete_rating(
+        self,
+        movie_id: uuid.UUID,
+        username: str
+    ) -> None:
+        """Удалить оценку фмльма.
+
+        Args
+            movie_id: ИД фильма
+            username: имя пользователя
+
+        """
+
+    @abstractmethod
+    def get_rating(
+        self,
+        movie_id: uuid.UUID,
+        username: str
+    ) -> int | None:
+        """Получить свою оценку фмльма.
+
+        Args
+            movie_id: ИД фильма
+            username: имя пользователя
+
+        Returns:
+            int | None: оценка или None
+
+        """
+
+    @abstractmethod
+    def get_overall_rating(self, movie_id: uuid.UUID) -> float | None:
+        """Получить оценку фмльма.
+
+        Args
+            movie_id: ИД фильма
+
+        Returns:
+            float | None: оценка или None
+
         """

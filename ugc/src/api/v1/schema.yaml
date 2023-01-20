@@ -30,7 +30,7 @@ components:
       properties:
         msg:
           type: string
-          example: Missing Authorization Header.
+          example: Some error message.
 
     View:
       type: object
@@ -97,7 +97,7 @@ components:
     MovieRatingResponse:
       type: object
       properties:
-        avg_rating:
+        overall_rating:
             type: number
             format: float
             nullable: true
@@ -113,6 +113,13 @@ components:
   responses:
     UnauthorizedError:
       description: Access-token отсутствует/невалидный или срок действия истек
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+            
+    BadRequestError:
+      description: Ошибка
       content:
         application/json:
           schema:
@@ -176,8 +183,11 @@ paths:
       responses:
         '200':
           description: Успешно
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+            
     put:
       tags:
         - оценка фильма
@@ -199,7 +209,9 @@ paths:
     get:
       tags:
         - оценка фильма
-      description: Получить среднюю оценку фильма
+      description: Получить свою оценку фильма
+      security:
+        - BearerAuth: []
       parameters:
         - $ref: '#/components/parameters/movieID'
       responses:
@@ -208,7 +220,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MovieRatingResponse'
+                $ref: '#/components/schemas/MovieRating'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
     delete:
       tags:
         - оценка фильма
@@ -222,6 +236,20 @@ paths:
           description: Успешно
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+  /movies/{movie_id}/ratings/overall:
+    get:
+      tags:
+        - оценка фильма
+      description: Получить оценку фильма
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieRatingResponse'
   /movies/{movie_id}/reviews:
     post:
       tags:
@@ -312,7 +340,7 @@ paths:
                 items:
                   type: string
                   format: uuid
-                example: [6ffefd8e-a018-e811-bbf9-60f67727d806, Gcc55edda-7acd-4128-877d-02b94430896a]
+                example: [6ffefd8e-a018-e811-bbf9-60f67727d806]
         '401':
           $ref: '#/components/responses/UnauthorizedError'
   /movies/{movie_id}/reviews/{review_id}/ratings:
