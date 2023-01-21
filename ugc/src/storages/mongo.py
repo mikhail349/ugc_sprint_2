@@ -3,6 +3,8 @@ from bson.codec_options import CodecOptions
 from bson.binary import UuidRepresentation
 
 import pymongo
+from pymongo.collection import Collection as MongoCollection
+from pymongo.errors import DuplicateKeyError
 
 from src.storages.base import Storage
 from src.configs.mongo import mongo_config
@@ -21,16 +23,37 @@ class Mongo(Storage):
 
     def init_collections(self):
         """Инициализировать коллекции."""
-        self.ratings = self.db.get_collection(
-            name="ratings",
-            codec_options=CodecOptions(
-                uuid_representation=UuidRepresentation.STANDARD
-            ))
+        def init_collection(name: str) -> MongoCollection:
+            """Инициализировать коллекции.
 
+            Args:
+                name: название коллекции
+
+            Returns:
+                MongoCollection: коллекция pymongo
+
+            """
+            return self.db.get_collection(
+                name=name,
+                codec_options=CodecOptions(
+                    uuid_representation=UuidRepresentation.STANDARD
+                )
+            )
+
+        self.ratings = init_collection("ratings")
         self.ratings.create_index(
             [
                 ("movie_id", pymongo.ASCENDING),
                 ("username", pymongo.ASCENDING)
+            ],
+            unique=True
+        )
+
+        self.favs = init_collection("favs")
+        self.favs.create_index(
+            [
+                ("username", pymongo.ASCENDING),
+                ("movie_id", pymongo.ASCENDING)
             ],
             unique=True
         )
@@ -47,7 +70,7 @@ class Mongo(Storage):
                 "username": username,
                 "rating": rating
             })
-        except pymongo.errors.DuplicateKeyError:
+        except DuplicateKeyError:
             raise DuplicateError()
 
     def edit_rating(
@@ -102,3 +125,12 @@ class Mongo(Storage):
         ]))
         if result:
             return result[0]["rating"]
+
+    def add_to_fav(self, movie_id: uuid.UUID, username: str) -> None:
+        pass
+
+    def delete_from_fav(self, movie_id: uuid.UUID, username: str) -> None:
+        pass
+
+    def get_favs(self, username: str) -> list[uuid.UUID]:
+        return []

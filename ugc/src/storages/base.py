@@ -19,9 +19,6 @@ class Storage(ABC):
             username: имя пользователя
             rating: рейтинг
 
-        Returns:
-            Any: id созданной записи
-
         """
 
     @abstractmethod
@@ -80,5 +77,45 @@ class Storage(ABC):
 
         Returns:
             float | None: оценка или None
+
+        """
+
+    @abstractmethod
+    def add_to_fav(
+        self,
+        movie_id: uuid.UUID,
+        username: str
+    ) -> None:
+        """Добавить фильм в избранное.
+
+        Args:
+            movie_id: ИД фильма
+            username: имя пользователя
+
+        """
+
+    @abstractmethod
+    def delete_from_fav(
+        self,
+        movie_id: uuid.UUID,
+        username: str
+    ) -> None:
+        """Удалить фильм из избранного.
+
+        Args:
+            movie_id: ИД фильма
+            username: имя пользователя
+
+        """
+
+    @abstractmethod
+    def get_favs(
+        self,
+        username: str
+    ) -> list[uuid.UUID]:
+        """Получить избранные фильмы.
+
+        Args:
+            username: имя пользователя
 
         """
