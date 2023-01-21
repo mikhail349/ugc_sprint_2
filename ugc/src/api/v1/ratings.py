@@ -10,7 +10,7 @@ from src.api.v1.base import StorageMixin, LoginMixin
 
 
 class Rating(LoginMixin, StorageMixin, Resource):
-    """Ресурс по работе с оценкой фильма."""
+    """API ресурс по работе с оценкой фильма."""
 
     def post(self, movie_id: uuid.UUID):
         """Поставить оценку фильму."""
@@ -57,10 +57,10 @@ class Rating(LoginMixin, StorageMixin, Resource):
 
 
 class OverallRating(StorageMixin, Resource):
-    """Ресурс по работе с общей оценкой фильма."""
+    """API ресурс по работе с общей оценкой фильма."""
 
     def get(self, movie_id: uuid.UUID):
-        """Получить оценку фильма."""
+        """Получить общую оценку фильма."""
 
         result = self.storage.get_overall_rating(movie_id=movie_id)
         return jsonify(rating=result)

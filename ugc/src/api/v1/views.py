@@ -8,7 +8,7 @@ from src.api.v1.base import StreamerMixin, LoginMixin
 
 
 class View(LoginMixin, StreamerMixin, Resource):
-    """Ресурс по работе с событиями просмотра фильма."""
+    """API ресурс по работе с событиями просмотра фильма."""
 
     def post(self, movie_id: uuid.UUID):
         """Отправить событие просмотра в стример событий."""
