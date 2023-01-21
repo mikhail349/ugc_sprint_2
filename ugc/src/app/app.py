@@ -13,6 +13,7 @@ init_auth(app)
 init_streamer(app)
 init_storage(app)
 
+
 api = Blueprint("api", __name__, url_prefix="/api")
 api_v1 = Blueprint("v1", __name__, url_prefix="/v1")
 api_v1.register_blueprint(movies)

@@ -21,7 +21,7 @@ def init_auth(app: Flask):
 
 
 def username_required(endpoint):
-    """Декоратор доступа, который в endpoint передает username."""
+    """Декоратор доступа, который в функцию передает username."""
     @functools.wraps(endpoint)
     def wrapper(*args, **kwargs):
         verify_jwt_in_request()
