@@ -3,7 +3,7 @@ from bson.codec_options import CodecOptions
 from bson.binary import UuidRepresentation
 
 import pymongo
-from pymongo import collection
+from pymongo.collection import Collection as MongoCollection
 
 from src.storages.base import Storage
 from src.configs.mongo import mongo_config
@@ -22,8 +22,25 @@ class Mongo(Storage):
         )
         self.client = pymongo.MongoClient(uri)
         self.db = self.client[mongo_config.db]
+        self.init_collections()
 
-        self.scores = self.get_collection("movies_score")
+    def init_collections(self):
+        """Инициализировать коллекции."""
+        def get_collection(name: str) -> MongoCollection:
+            """Получить коллецию MongoDB с настроенным кодеком для работы с UUID.
+
+            Args:
+                name: название
+
+            """
+            return self.db.get_collection(
+                name=name,
+                codec_options=CodecOptions(
+                    uuid_representation=UuidRepresentation.STANDARD
+                )
+            )
+
+        self.scores = get_collection("movies_score")
         self.scores.create_index(
             [
                 ("movie_id", pymongo.ASCENDING),
@@ -32,7 +49,7 @@ class Mongo(Storage):
             unique=True
         )
 
-        self.movies = self.get_collection("movies")
+        self.movies = get_collection("movies")
         self.movies.create_index(
             [
                 ("movie_id", pymongo.ASCENDING),
@@ -40,26 +57,12 @@ class Mongo(Storage):
             unique=True
         )
 
-        self.favs = self.get_collection("fav_movies")
+        self.favs = get_collection("fav_movies")
         self.favs.create_index(
             [
                 ("user_id", pymongo.ASCENDING),
             ],
             unique=True
-        )
-
-    def get_collection(self, name: str) -> collection.Collection:
-        """Получить коллецию из MongoDB с настроенным кодеком для работы с UUID.
-
-        Args:
-            name: название
-
-        """
-        return self.db.get_collection(
-            name=name,
-            codec_options=CodecOptions(
-                uuid_representation=UuidRepresentation.STANDARD
-            )
         )
 
     def populate(
