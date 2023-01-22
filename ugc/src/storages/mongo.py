@@ -153,5 +153,6 @@ class Mongo(Storage):
 
     def get_favs(self, username: str) -> list[uuid.UUID]:
         result = self.favs.find_one({"username": username})
-        if result:
-            return result["fav_movies"]
+        if not result:
+            return []
+        return result["fav_movies"]
