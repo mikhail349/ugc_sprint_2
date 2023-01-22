@@ -81,11 +81,7 @@ class Storage(ABC):
         """
 
     @abstractmethod
-    def add_to_fav(
-        self,
-        movie_id: uuid.UUID,
-        username: str
-    ) -> None:
+    def add_to_fav(self, movie_id: uuid.UUID, username: str) -> None:
         """Добавить фильм в избранное.
 
         Args:
@@ -95,11 +91,7 @@ class Storage(ABC):
         """
 
     @abstractmethod
-    def delete_from_fav(
-        self,
-        movie_id: uuid.UUID,
-        username: str
-    ) -> None:
+    def delete_from_fav(self, movie_id: uuid.UUID, username: str) -> None:
         """Удалить фильм из избранного.
 
         Args:
@@ -109,10 +101,7 @@ class Storage(ABC):
         """
 
     @abstractmethod
-    def get_favs(
-        self,
-        username: str
-    ) -> list[uuid.UUID]:
+    def get_favs(self, username: str) -> list[uuid.UUID]:
         """Получить избранные фильмы.
 
         Args:

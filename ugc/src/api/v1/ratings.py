@@ -40,7 +40,7 @@ class Rating(LoginMixin, StorageMixin, Resource):
 
         return Response(status=HTTPStatus.OK)
 
-    def delete_rating(self, movie_id: uuid.UUID):
+    def delete(self, movie_id: uuid.UUID):
         """Удалить оценку фильма."""
 
         self.storage.delete_rating(movie_id=movie_id, username=self.username)

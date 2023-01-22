@@ -53,7 +53,7 @@ class Mongo(Storage):
         self.favs.create_index(
             [
                 ("username", pymongo.ASCENDING),
-                ("movie_id", pymongo.ASCENDING)
+                # ("movie_id", pymongo.ASCENDING)
             ],
             unique=True
         )
@@ -127,10 +127,31 @@ class Mongo(Storage):
             return result[0]["rating"]
 
     def add_to_fav(self, movie_id: uuid.UUID, username: str) -> None:
-        pass
+        self.favs.update_one(
+            {
+                "username": username
+            },
+            {
+                "$addToSet": {
+                    "fav_movies": movie_id
+                }
+            },
+            upsert=True
+        )
 
     def delete_from_fav(self, movie_id: uuid.UUID, username: str) -> None:
-        pass
+        self.favs.update_one(
+            {
+                "username": username
+            },
+            {
+                "$pull": {
+                    "fav_movies": movie_id
+                }
+            }
+        )
 
     def get_favs(self, username: str) -> list[uuid.UUID]:
-        return []
+        result = self.favs.find_one({"username": username})
+        if result:
+            return result["fav_movies"]

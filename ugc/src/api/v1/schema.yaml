@@ -326,8 +326,6 @@ paths:
       tags:
         - избранные фильмы
       description: Получить список избранных фильмов
-      parameters:
-        - $ref: '#/components/parameters/movieID'
       security:
         - BearerAuth: []
       responses:
