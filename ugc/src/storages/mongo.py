@@ -1,6 +1,7 @@
 import uuid
 from bson.codec_options import CodecOptions
 from bson.binary import UuidRepresentation
+import datetime
 
 import pymongo
 from pymongo.collection import Collection as MongoCollection
@@ -24,7 +25,7 @@ class Mongo(Storage):
     def init_collections(self):
         """Инициализировать коллекции."""
         def init_collection(name: str) -> MongoCollection:
-            """Инициализировать коллекции.
+            """Инициализировать коллекцию с кодеком UUID.
 
             Args:
                 name: название коллекции
@@ -53,7 +54,15 @@ class Mongo(Storage):
         self.favs.create_index(
             [
                 ("username", pymongo.ASCENDING),
-                # ("movie_id", pymongo.ASCENDING)
+            ],
+            unique=True
+        )
+
+        self.reviews = init_collection("reviews")
+        self.reviews.create_index(
+            [
+                ("movie_id", pymongo.ASCENDING),
+                ("username", pymongo.ASCENDING)
             ],
             unique=True
         )
@@ -156,3 +165,67 @@ class Mongo(Storage):
         if not result:
             return []
         return result["fav_movies"]
+
+    def add_review(self, username: str, movie_id: uuid.UUID, text: str):
+        try:
+            self.reviews.insert_one({
+                "username": username,
+                "movie_id": movie_id,
+                "text": text,
+                "created_at": datetime.datetime.now()
+            })
+        except DuplicateKeyError:
+            raise DuplicateError()
+
+    def get_reviews(self, movie_id: uuid.UUID) -> list:
+        reviews = list(self.reviews.aggregate([
+            {
+                "$match": {
+                    "movie_id": movie_id
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "ratings",
+                    "let": {
+                        "movie_id": "$movie_id",
+                        "username": "$username"
+                    },
+                    "pipeline": [{
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {
+                                        "$eq": [
+                                            "$movie_id",
+                                            "$$movie_id"
+                                        ]
+                                    },
+                                    {
+                                        "$eq": [
+                                            "$username",
+                                            "$$username"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }],
+                    "as": "movie_ratings"
+                }
+            }
+        ]))
+        if not reviews:
+            return []
+
+        return [{
+            "created_at": review["created_at"],
+            "creator": {
+                "username": review["username"]
+            },
+            "movie_rating": (
+                review["movie_ratings"][0]["rating"]
+                if review["movie_ratings"] else None
+            ),
+            "text": review["text"]
+        } for review in reviews]

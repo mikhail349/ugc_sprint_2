@@ -108,3 +108,31 @@ class Storage(ABC):
             username: имя пользователя
 
         """
+
+    @abstractmethod
+    def add_review(
+        self,
+        username: str,
+        movie_id: uuid.UUID,
+        text: str
+    ) -> None:
+        """Добавить рецензию к фильму.
+
+        Args:
+            username: имя пользователя
+            movie_id: ИД фильма
+            text: текст рецензии
+
+        """
+
+    @abstractmethod
+    def get_reviews(self, movie_id: uuid.UUID) -> list:
+        """Получить список рецензий к фильму.
+
+        Args:
+            movie_id: ИД фильма
+
+        Returns:
+            list: список рецензий.
+
+        """
