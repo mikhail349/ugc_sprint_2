@@ -3,6 +3,7 @@ import random
 import threading
 import time
 import logging
+import uuid
 
 from src.storages.base import Storage
 from src.factories.movie import create_movie
@@ -22,30 +23,17 @@ class Researcher:
         """Наполнить хранилище данными."""
 
         self.users = [
-            create_user() for _ in range(researcher_config.user_amount)
+            uuid.uuid4() for _ in range(researcher_config.user_amount)
         ]
         self.movies = [
-            create_movie() for _ in range(researcher_config.movie_amount)
+            uuid.uuid4() for _ in range(researcher_config.movie_amount)
         ]
 
-        fav_movies = []
-        movies_score = []
-
-        for user in self.users:
-            fav_movies.extend([
-                create_fav_movie(user_id=user.id)
-                for _ in range(researcher_config.fav_movies_per_user_amount)
-            ])
-
-        for movie in self.movies:
-            movies_score.extend([
-                create_movie_score(movie_id=movie.id)
-                for _ in range(researcher_config.scores_per_movie_amount)
-            ])
-
         self.storage.populate(
-            fav_movies=fav_movies,
-            movies_score=movies_score
+            users=self.users,
+            fav_movies_per_user=researcher_config.fav_movies_per_user_amount,
+            movies=self.movies,
+            scores_per_movie=researcher_config.scores_per_movie_amount
         )
 
     @counter(iterations=researcher_config.read_write_iterations)
@@ -63,14 +51,14 @@ class Researcher:
         """Чтение избранных фильмов пользователей."""
         random_ix = random.randint(0, len(self.users) - 1)
         user = self.users[random_ix]
-        self.storage.get_fav_movies(user_id=user.id)
+        self.storage.get_fav_movies(user_id=user)
 
     @counter(iterations=researcher_config.read_write_iterations)
     def read_movie_score(self):
         """Чтение оценок фильмов."""
         random_ix = random.randint(0, len(self.movies) - 1)
         movie = self.movies[random_ix]
-        self.storage.get_movie_score(movie_id=movie.id)
+        self.storage.get_movie_score(movie_id=movie)
 
     @counter(iterations=researcher_config.read_write_iterations)
     def read_write_movie_score(self):

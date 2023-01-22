@@ -1,7 +1,6 @@
 import uuid
 from bson.codec_options import CodecOptions
 from bson.binary import UuidRepresentation
-import enum
 
 import pymongo
 from pymongo import collection
@@ -10,15 +9,8 @@ from src.storages.base import Storage
 from src.configs.mongo import mongo_config
 from src.models.fav_movie import FavMovie
 from src.models.movie_score import MovieScore
-
-
-class Collection(str, enum.Enum):
-    """Перечисление коллекций."""
-
-    FAV_MOVIES = "fav_movies"
-    """Избранные фильмы."""
-    MOVIES_SCORE = "movies_score"
-    """Оценки фильмов."""
+from src.factories.movie import create_movie
+from src.factories.movie_score import create_movie_score
 
 
 class Mongo(Storage):
@@ -28,48 +20,81 @@ class Mongo(Storage):
         uri = (
             f'mongodb://{mongo_config.host}:{mongo_config.port}'
         )
-        self.client = pymongo.MongoClient(uri)  # type: pymongo.MongoClient
+        self.client = pymongo.MongoClient(uri)
         self.db = self.client[mongo_config.db]
 
-    def populate(
-        self,
-        fav_movies: list[FavMovie],
-        movies_score: list[MovieScore]
-    ):
-        self.insert_many(
-            collection=Collection.MOVIES_SCORE,
-            data=[row.dict() for row in movies_score]
-        )
-        self.insert_many(
-            collection=Collection.FAV_MOVIES,
-            data=[row.dict() for row in fav_movies]
+        self.scores = self.get_collection("movies_score")
+        self.scores.create_index(
+            [
+                ("movie_id", pymongo.ASCENDING),
+                ("user_id", pymongo.ASCENDING)
+            ],
+            unique=True
         )
 
-    def insert_many(self, collection: Collection, data: list):
-        coll = self.get_collection(collection)
-        coll.insert_many(data)
+        self.movies = self.get_collection("movies")
+        self.movies.create_index(
+            [
+                ("movie_id", pymongo.ASCENDING),
+            ],
+            unique=True
+        )
 
-    def get_collection(self, collection: Collection) -> collection.Collection:
+        self.favs = self.get_collection("fav_movies")
+        self.favs.create_index(
+            [
+                ("user_id", pymongo.ASCENDING),
+            ],
+            unique=True
+        )
+
+    def get_collection(self, name: str) -> collection.Collection:
         """Получить коллецию из MongoDB с настроенным кодеком для работы с UUID.
 
         Args:
-            collection: коллеция из перечисления
+            name: название
 
         """
         return self.db.get_collection(
-            name=collection.value,
+            name=name,
             codec_options=CodecOptions(
                 uuid_representation=UuidRepresentation.STANDARD
             )
         )
 
-    def add_movie_score(self, movie_score: MovieScore):
-        collection = self.get_collection(Collection.MOVIES_SCORE)
-        collection.insert_one(movie_score.dict())
+    def populate(
+        self,
+        users: list[uuid.UUID],
+        fav_movies_per_user: int,
+        movies: list[uuid.UUID],
+        scores_per_movie: int
+    ):
+        fav_movies = [
+            {
+                "user_id": user,
+                "fav_movies": [
+                    create_movie().id
+                    for _ in range(fav_movies_per_user)
+                ]
+            }
+            for user in users
+        ]
+        self.favs.insert_many(fav_movies)
 
-    def get_movie_score(self, movie_id: uuid.UUID) -> float | None:
-        collection = self.get_collection(Collection.MOVIES_SCORE)
-        data = list(collection.aggregate([
+        movies_score = [
+           create_movie_score(movie_id=movie).dict()
+           for _ in range(scores_per_movie)
+           for movie in movies
+        ]
+        self.scores.insert_many(movies_score)
+
+    def calculate_movie_score(self, movie_id: uuid.UUID):
+        """Рассчитать оценку фильма.
+
+        movie_id: ИД фильма
+
+        """
+        scores = list(self.scores.aggregate([
             {
                 "$match": {
                     "movie_id": movie_id
@@ -84,15 +109,46 @@ class Mongo(Storage):
                 }
             }
         ]))
-        if not data:
+        movie_score = scores[0]["avg_score"] if scores else None
+        self.movies.update_one(
+            {
+                "movie_id": movie_id
+            },
+            {
+                "$set": {
+                    "score": movie_score
+                }
+            },
+            upsert=True
+        )
+
+    def add_movie_score(self, movie_score: MovieScore):
+        with self.client.start_session() as session:
+            with session.start_transaction():
+                self.scores.insert_one(movie_score.dict())
+                self.calculate_movie_score(movie_id=movie_score.movie_id)
+
+    def get_movie_score(self, movie_id: uuid.UUID) -> float | None:
+        movie = self.movies.find_one({"movie_id": movie_id})
+        if not movie:
             return None
-        return data[0]["avg_score"]
+        return movie["score"]
 
     def add_fav_movie(self, fav_movie: FavMovie):
-        collection = self.get_collection(Collection.FAV_MOVIES)
-        collection.insert_one(fav_movie.dict())
+        self.favs.update_one(
+            {
+                "user_id": fav_movie.user_id
+            },
+            {
+                "$addToSet": {
+                    "fav_movies": fav_movie.movie_id
+                }
+            },
+            upsert=True
+        )
 
-    def get_fav_movies(self, user_id: uuid.UUID) -> list[FavMovie]:
-        collection = self.get_collection(Collection.FAV_MOVIES)
-        data = collection.find({"user_id": user_id})
-        return [FavMovie(**row) for row in data]
+    def get_fav_movies(self, user_id: uuid.UUID) -> list[uuid.UUID]:
+        data = self.favs.find_one({"user_id": user_id})
+        if not data:
+            return []
+        return data["fav_movies"]

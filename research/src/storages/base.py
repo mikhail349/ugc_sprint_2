@@ -11,8 +11,10 @@ class Storage(ABC):
     @abstractmethod
     def populate(
         self,
-        fav_movies: list[FavMovie],
-        movies_score: list[MovieScore]
+        users: list[uuid.UUID],
+        fav_movies_per_user: int,
+        movies: list[uuid.UUID],
+        scores_per_movie: int
     ):
         """Наполнить хранилище.
 
@@ -46,7 +48,7 @@ class Storage(ABC):
         """
 
     @abstractmethod
-    def get_fav_movies(self, user_id: uuid.UUID) -> list[FavMovie]:
+    def get_fav_movies(self, user_id: uuid.UUID) -> list[uuid.UUID]:
         """Получить список избранных фильмов пользователя.
 
         Args:

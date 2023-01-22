@@ -79,6 +79,13 @@ services:
       - ./mongodb:/scripts
     ports:
       - 27127:27017
+  mongo-web:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://router01:27017/
 
 # ClickHouse
   zookeeper:
