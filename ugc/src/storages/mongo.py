@@ -9,7 +9,7 @@ from pymongo.errors import DuplicateKeyError
 
 from src.storages.base import Storage
 from src.configs.mongo import mongo_config
-from src.storages.errors import DuplicateError
+from src.storages.errors import DuplicateError, DoesNotExistError
 
 
 class Mongo(Storage):
@@ -24,8 +24,8 @@ class Mongo(Storage):
 
     def init_collections(self):
         """Инициализировать коллекции."""
-        def init_collection(name: str) -> MongoCollection:
-            """Инициализировать коллекцию с кодеком UUID.
+        def get_collection(name: str) -> MongoCollection:
+            """Получить коллекцию MongoDB с кодеком UUID.
 
             Args:
                 name: название коллекции
@@ -41,7 +41,15 @@ class Mongo(Storage):
                 )
             )
 
-        self.ratings = init_collection("ratings")
+        self.movies = get_collection("movies")
+        self.movies.create_index(
+            [
+                ("movie_id", pymongo.ASCENDING),
+            ],
+            unique=True
+        )
+
+        self.ratings = get_collection("ratings")
         self.ratings.create_index(
             [
                 ("movie_id", pymongo.ASCENDING),
@@ -50,7 +58,7 @@ class Mongo(Storage):
             unique=True
         )
 
-        self.favs = init_collection("favs")
+        self.favs = get_collection("favs")
         self.favs.create_index(
             [
                 ("username", pymongo.ASCENDING),
@@ -58,13 +66,49 @@ class Mongo(Storage):
             unique=True
         )
 
-        self.reviews = init_collection("reviews")
+        self.reviews = get_collection("reviews")
         self.reviews.create_index(
             [
                 ("movie_id", pymongo.ASCENDING),
                 ("username", pymongo.ASCENDING)
             ],
             unique=True
+        )
+
+    def update_movie(self, movie_id: uuid.UUID):
+        """Обновить данные фильма.
+
+        Args:
+            movie_id: ИД фильма
+
+        """
+        ratings = list(self.ratings.aggregate([
+            {
+                "$match": {
+                    "movie_id": movie_id
+                }
+            },
+            {
+                "$group": {
+                    "_id": "movie_id",
+                    "avg_rating": {
+                        "$avg": "$rating"
+                    }
+                }
+            }
+        ]))
+
+        rating = ratings[0]["avg_rating"] if ratings else None
+        self.movies.update_one(
+            {
+                "movie_id": movie_id
+            },
+            {
+                "$set": {
+                    "rating": rating
+                }
+            },
+            upsert=True
         )
 
     def add_rating(
@@ -74,11 +118,14 @@ class Mongo(Storage):
         rating: int
     ) -> None:
         try:
-            self.ratings.insert_one({
-                "movie_id": movie_id,
-                "username": username,
-                "rating": rating
-            })
+            with self.client.start_session() as session:
+                with session.start_transaction():
+                    self.ratings.insert_one({
+                        "movie_id": movie_id,
+                        "username": username,
+                        "rating": rating
+                    })
+                    self.update_movie(movie_id=movie_id)
         except DuplicateKeyError:
             raise DuplicateError()
 
@@ -88,52 +135,52 @@ class Mongo(Storage):
         username: str,
         rating: int
     ) -> None:
-        self.ratings.update_one(
-            {
-                "movie_id": movie_id,
-                "username": username
-            },
-            {
-                "$set": {
-                    "rating": rating
-                }
-            }
-        )
+        with self.client.start_session() as session:
+            with session.start_transaction():
+                result = self.ratings.find_one_and_update(
+                    {
+                        "movie_id": movie_id,
+                        "username": username
+                    },
+                    {
+                        "$set": {
+                            "rating": rating
+                        }
+                    }
+                )
+                if not result:
+                    raise DoesNotExistError()
+                self.update_movie(movie_id=movie_id)
 
     def delete_rating(self, movie_id: uuid.UUID, username: str) -> None:
-        self.ratings.delete_one(
-            {
-                "movie_id": movie_id,
-                "username": username
-            }
-        )
+        with self.client.start_session() as session:
+            with session.start_transaction():
+                result = self.ratings.find_one_and_delete(
+                    {
+                        "movie_id": movie_id,
+                        "username": username
+                    }
+                )
+                print(result)
+                if not result:
+                    raise DoesNotExistError()
+                self.update_movie(movie_id=movie_id)
 
     def get_rating(self, movie_id: uuid.UUID, username: str) -> int | None:
         result = self.ratings.find_one({
             "movie_id": movie_id,
             "username": username
         })
-        if result:
-            return result["rating"]
+        if not result:
+            raise DoesNotExistError()
+
+        return result["rating"]
 
     def get_overall_rating(self, movie_id: uuid.UUID) -> float | None:
-        result = list(self.ratings.aggregate([
-            {
-                "$match": {
-                    "movie_id": movie_id
-                }
-            },
-            {
-                "$group": {
-                    "_id": "movie_id",
-                    "rating": {
-                        "$avg": "$rating"
-                    }
-                }
-            }
-        ]))
-        if result:
-            return result[0]["rating"]
+        movie = self.movies.find_one({"movie_id": movie_id})
+        if not movie:
+            return None
+        return movie["rating"]
 
     def add_to_fav(self, movie_id: uuid.UUID, username: str) -> None:
         self.favs.update_one(

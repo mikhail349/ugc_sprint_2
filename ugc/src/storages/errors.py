@@ -1,2 +1,6 @@
 class DuplicateError(Exception):
-    pass
+    """Ошибка дубликата записи в БД."""
+
+
+class DoesNotExistError(Exception):
+    """Ошибка запись не найдена."""
