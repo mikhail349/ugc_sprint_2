@@ -242,6 +242,13 @@ class Mongo(Storage):
         movie_id: uuid.UUID,
         username: str
     ) -> dict:
+        """"Получить рейтинг фильма в рецензии.
+
+        Args:
+            movie_id: ИД фильма
+            username: имя пользователя
+
+        """
         creator_rating = self.get_rating(
             movie_id=movie_id,
             username=username
@@ -255,6 +262,12 @@ class Mongo(Storage):
         }
 
     def get_review_rating(self, review_id: Any) -> dict:
+        """"Получить рейтинг рецензии.
+
+        Args:
+            review: ИД рецензии
+
+        """
         result = list(self.ratings.aggregate([
             {
                 "$match": {
