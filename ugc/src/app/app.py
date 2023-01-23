@@ -6,9 +6,11 @@ from src.api.v1.openapi import openapi
 from src.services.auth import init_auth
 from src.services.streamer import init_streamer
 from src.services.storage import init_storage
+from src.utils.encoders import JSONEncoder
 
 
 app = Flask(__name__)
+app.json_encoder = JSONEncoder
 init_auth(app)
 init_streamer(app)
 init_storage(app)

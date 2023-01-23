@@ -4,7 +4,7 @@ from flask_restful import Api
 from src.api.v1.views import View
 from src.api.v1.ratings import Rating, OverallRating
 from src.api.v1.favs import FavMovie, FavMovieList
-from src.api.v1.reviews import Review
+from src.api.v1.reviews import Review, ReviewRating
 
 
 movies = Blueprint("movies", __name__,  url_prefix="/movies")
@@ -18,3 +18,4 @@ api.add_resource(FavMovie, "/<movie_id>/favs")
 api.add_resource(FavMovieList, "/favs")
 
 api.add_resource(Review, "/<movie_id>/reviews")
+api.add_resource(ReviewRating, "/<movie_id>/reviews/<review_id>/ratings")

@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 import uuid
+from typing import Any
+
+from src.models.review import Review
 
 
 class Storage(ABC):
@@ -115,7 +118,7 @@ class Storage(ABC):
         username: str,
         movie_id: uuid.UUID,
         text: str
-    ) -> None:
+    ) -> Any:
         """Добавить рецензию к фильму.
 
         Args:
@@ -123,16 +126,30 @@ class Storage(ABC):
             movie_id: ИД фильма
             text: текст рецензии
 
+        Returns:
+            Any: ИД рецензии
+
         """
 
     @abstractmethod
-    def get_reviews(self, movie_id: uuid.UUID) -> list:
+    def get_reviews(self, movie_id: uuid.UUID) -> list[Review]:
         """Получить список рецензий к фильму.
 
         Args:
             movie_id: ИД фильма
 
         Returns:
-            list: список рецензий.
+            list[Review]: список рецензий
+
+        """
+
+    @abstractmethod
+    def add_review_rating(self, review_id: Any, username: str, rating: int):
+        """Поставить оценку ревью.
+
+        Args:
+            review_id: ИД рецензии
+            username: имя пользователя
+            rating: оценка
 
         """

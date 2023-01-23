@@ -57,16 +57,22 @@ components:
           format: datetime
           example: 2017-07-21T17:32:28Z
         creator:
+          type: string
+          example: ivan123
+        movie_rating:
           type: object
           properties:
-            username:
-              type: string
-              example: ivan123
-        movie_rating:
-          type: integer
-          minimum: 0
-          maximum: 10
-          example: 9
+            creator:
+              type: integer
+              minimum: 0
+              maximum: 10
+              example: 9
+            overall:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 10
+              example: 8.5
         review_rating:
           type: object
           properties:
@@ -142,8 +148,7 @@ components:
       required: true
       schema:
         type: string
-        format: uuid
-        example: 6ffefd8e-a018-e811-bbf9-60f67727d806
+        example: 63ce5156b2520c7a19c99782
 
 paths:
   /movies/{movie_id}/views:
