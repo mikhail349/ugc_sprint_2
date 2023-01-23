@@ -59,7 +59,7 @@ class ReviewRating(LoginMixin, StorageMixin, Resource):
             )
         except DuplicateError:
             return make_response(
-                msg.REVIEW_RATING_EXISTS,
+                jsonify(msg=msg.REVIEW_RATING_EXISTS),
                 HTTPStatus.BAD_REQUEST
             )
 

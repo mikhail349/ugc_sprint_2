@@ -24,7 +24,7 @@ class Rating(LoginMixin, StorageMixin, Resource):
             )
         except DuplicateError:
             return make_response(
-                msg.MOVIE_RATING_EXISTS,
+                jsonify(msg=msg.MOVIE_RATING_EXISTS),
                 HTTPStatus.BAD_REQUEST
             )
 
@@ -42,7 +42,7 @@ class Rating(LoginMixin, StorageMixin, Resource):
             )
         except DoesNotExistError:
             return make_response(
-                msg.MOVIE_RATING_DOES_NOT_EXIST,
+                jsonify(msg=msg.MOVIE_RATING_DOES_NOT_EXIST),
                 HTTPStatus.BAD_REQUEST
             )
 
@@ -57,7 +57,7 @@ class Rating(LoginMixin, StorageMixin, Resource):
             )
         except DoesNotExistError:
             return make_response(
-                msg.MOVIE_RATING_DOES_NOT_EXIST,
+                jsonify(msg=msg.MOVIE_RATING_DOES_NOT_EXIST),
                 HTTPStatus.BAD_REQUEST
             )
 
@@ -72,7 +72,7 @@ class Rating(LoginMixin, StorageMixin, Resource):
             )
         except DoesNotExistError:
             return make_response(
-                msg.MOVIE_RATING_DOES_NOT_EXIST,
+                jsonify(msg=msg.MOVIE_RATING_DOES_NOT_EXIST),
                 HTTPStatus.BAD_REQUEST
             )
 

@@ -11,6 +11,8 @@ from src.utils.encoders import JSONEncoder
 
 app = Flask(__name__)
 app.json_encoder = JSONEncoder
+app.config['PROPAGATE_EXCEPTIONS'] = True
+
 init_auth(app)
 init_streamer(app)
 init_storage(app)

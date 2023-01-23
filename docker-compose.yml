@@ -10,13 +10,15 @@ services:
       - 27117:27017
     volumes:
       - ./ugc/mongodb:/scripts
+      - mongodb_cluster_router01:/data/db
 ## Config Server
   configsvr01:
     image: mongo:latest
     container_name: mongo-config-01 
     command: mongod --port 27017 --configsvr --replSet rs-config-server
     volumes:
-      - ./ugc/mongodb:/scripts 
+      - ./ugc/mongodb:/scripts
+      - mongodb_cluster_configsvr01:/data/db
     ports:
       - 27119:27017
     links:
@@ -30,6 +32,7 @@ services:
     command: mongod --port 27017 --shardsvr --replSet rs-shard-01
     volumes:
       - ./ugc/mongodb:/scripts
+      - mongodb_cluster_shard01_a:/data/db
     ports:
       - 27122:27017
     links:
@@ -41,6 +44,7 @@ services:
     command: mongod --port 27017 --shardsvr --replSet rs-shard-01
     volumes:
       - ./ugc/mongodb:/scripts
+      - mongodb_cluster_shard01_b:/data/db
     ports:
       - 27123:27017
   shard01-c:
@@ -49,6 +53,7 @@ services:
     command: mongod --port 27017 --shardsvr --replSet rs-shard-01
     volumes:
       - ./ugc/mongodb:/scripts
+      - mongodb_cluster_shard01_c:/data/db
     ports:
       - 27124:27017
   ## Shards 02
@@ -58,6 +63,7 @@ services:
     command: mongod --port 27017 --shardsvr --replSet rs-shard-02
     volumes:
       - ./ugc/mongodb:/scripts
+      - mongodb_cluster_shard02_a:/data/db
     ports:
       - 27125:27017
     links:
@@ -69,6 +75,7 @@ services:
     command: mongod --port 27017 --shardsvr --replSet rs-shard-02
     volumes:
       - ./ugc/mongodb:/scripts
+      - mongodb_cluster_shard02_b:/data/db
     ports:
       - 27126:27017
   shard02-c:
@@ -77,6 +84,7 @@ services:
     command: mongod --port 27017 --shardsvr --replSet rs-shard-02
     volumes:
       - ./ugc/mongodb:/scripts
+      - mongodb_cluster_shard02_c:/data/db
     ports:
       - 27127:27017
 
@@ -114,6 +122,7 @@ services:
       - ${HOST_JWT_PUBLIC_KEY_PATH}:${JWT_PUBLIC_KEY_PATH}:ro
     depends_on:
       - kafka
+      - kafka-2
   nginx:
     image: nginx:1.19.2-alpine
     volumes:
@@ -168,4 +177,11 @@ services:
       - ./etl/.env
 
 volumes:
-  mongodb:
+  mongodb_cluster_router01:
+  mongodb_cluster_configsvr01:
+  mongodb_cluster_shard01_a:
+  mongodb_cluster_shard01_b:
+  mongodb_cluster_shard01_c:
+  mongodb_cluster_shard02_a:
+  mongodb_cluster_shard02_b:
+  mongodb_cluster_shard02_c:
