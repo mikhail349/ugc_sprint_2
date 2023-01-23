@@ -42,6 +42,8 @@ CREATE TABLE default.views (id String, user_id String, movie_id String, timestam
 exit
 ```
 
+5. При необходимости повторно запустить докер `docker compose up -d --build`
+
 ## Линтер
 
 Запуск: `flake8 src/`
