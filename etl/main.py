@@ -11,21 +11,6 @@ from kafka.errors import KafkaError
 from etl.configs import clickhouse_config, kafka_config, etl_config
 
 
-def prepare_clickhouse_schema():
-    """Создание базы данных и таблиц в clickhouse."""
-    clickhouse_client.execute(
-        f"CREATE DATABASE IF NOT EXISTS {clickhouse_config.db_name} "
-        f"ON CLUSTER {clickhouse_config.cluster_name}"
-    )
-    clickhouse_client.execute(
-        f"CREATE TABLE IF NOT EXISTS {clickhouse_config.db_name}.{clickhouse_config.table_name} "  # noqa: E501
-        f"ON CLUSTER {clickhouse_config.cluster_name} "
-        f"(id String, user_id String, movie_id String, timestamp Int64) "
-        f"Engine=MergeTree() ORDER BY id"
-    )
-    logging.info("Database and table created in clickhouse")
-
-
 @backoff.on_exception(wait_gen=backoff.expo, exception=Exception)
 def load_views_to_clickhouse(data) -> None:
     """Загружает данные в clickhouse."""
@@ -67,7 +52,6 @@ if __name__ == "__main__":
         enable_auto_commit=False,
     )
     clickhouse_client = Client(host=clickhouse_config.host)
-    prepare_clickhouse_schema()
     try:
         load_data_kafka_to_clickhouse()
     except Error as e:
