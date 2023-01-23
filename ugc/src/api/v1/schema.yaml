@@ -209,6 +209,8 @@ paths:
       responses:
         '200':
           description: Успешно
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
     get:
@@ -239,6 +241,8 @@ paths:
       responses:
         '200':
           description: Успешно
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
   /movies/{movie_id}/ratings/overall:
@@ -272,6 +276,16 @@ paths:
       responses:
         '200':
           description: Успешно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: 63ce7812a1dd36e89b35df96
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
     get:
@@ -364,6 +378,8 @@ paths:
       responses:
         '200':
           description: Успешно
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
       

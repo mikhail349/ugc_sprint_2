@@ -1,8 +1,21 @@
 from abc import ABC, abstractmethod
-import uuid
 from typing import Any
+import uuid
+import enum
 
 from src.models.review import Review
+
+
+class ReviewSort(str, enum.Enum):
+    """Вид сортировки рецензии."""
+    NEWEST = "newest"
+    """Сначала новые."""
+    OLDEST = "oldest"
+    """Сначала старые."""
+    MOST_LIKED = "most_liked"
+    """Наибольшее кол-во лайков."""
+    MOST_DISLIKED = "most_disliked"
+    """Наибольшее кол-во дизлайков."""
 
 
 class Storage(ABC):
@@ -132,11 +145,16 @@ class Storage(ABC):
         """
 
     @abstractmethod
-    def get_reviews(self, movie_id: uuid.UUID) -> list[Review]:
+    def get_reviews(
+        self,
+        movie_id: uuid.UUID,
+        sort: ReviewSort = None
+    ) -> list[Review]:
         """Получить список рецензий к фильму.
 
         Args:
             movie_id: ИД фильма
+            sort: сортировка
 
         Returns:
             list[Review]: список рецензий

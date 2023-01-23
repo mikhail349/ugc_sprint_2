@@ -4,7 +4,7 @@ import uuid
 from flask import request, Response
 from flask_restful import Resource
 
-from src.api.v1.base import StreamerMixin, LoginMixin
+from src.api.mixins import StreamerMixin, LoginMixin
 
 
 class View(LoginMixin, StreamerMixin, Resource):

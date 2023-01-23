@@ -6,7 +6,7 @@ from flask_restful import Resource
 
 from src.storages.errors import DuplicateError
 from src.api.v1 import messages as msg
-from src.api.v1.base import StorageMixin, LoginMixin
+from src.api.mixins import StorageMixin, LoginMixin
 
 
 class FavMovie(LoginMixin, StorageMixin, Resource):

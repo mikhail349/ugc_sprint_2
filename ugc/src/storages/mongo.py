@@ -10,7 +10,7 @@ import pymongo
 from pymongo.collection import Collection as MongoCollection
 from pymongo.errors import DuplicateKeyError
 
-from src.storages.base import Storage
+from src.storages.base import Storage, ReviewSort
 from src.configs.mongo import mongo_config
 from src.storages.errors import DuplicateError, DoesNotExistError
 from src.models.review import Review
@@ -19,7 +19,25 @@ from src.models.review import Review
 class RatingObject(str, enum.Enum):
     """Вид объекта, для которого ставится оценка."""
     MOVIE = "movie"
+    """Фильм."""
     REVIEW = "review"
+    """Рецензия."""
+
+
+def get_review_sort_query(sort: ReviewSort) -> dict:
+    """Получить mongo-запрос для сортировки рецензий.
+
+    Args:
+        sort: ReviewSort
+
+    """
+    sorts = {
+        ReviewSort.NEWEST: {"created_at": -1},
+        ReviewSort.OLDEST: {"created_at": 1},
+        ReviewSort.MOST_LIKED: {"review_rating.likes": -1},
+        ReviewSort.MOST_DISLIKED: {"review_rating.dislikes": -1}
+    }
+    return {"$sort": sorts.get(sort)}
 
 
 class Mongo(Storage):
@@ -349,8 +367,22 @@ class Mongo(Storage):
                 except DuplicateKeyError:
                     raise DuplicateError()
 
-    def get_reviews(self, movie_id: uuid.UUID) -> list:
-        reviews = list(self.reviews.find({"movie_id": movie_id}))
+    def get_reviews(
+        self,
+        movie_id: uuid.UUID,
+        sort: ReviewSort = None
+    ) -> list:
+        pipeline = [
+            {
+                "$match": {
+                    "movie_id": movie_id
+                }
+            }
+        ]
+        if sort:
+            pipeline.append(get_review_sort_query(sort))
+
+        reviews = list(self.reviews.aggregate(pipeline))
         return [Review(**review).dict() for review in reviews]
 
     def add_review_rating(self, review_id: Any, username: str, rating: int):

@@ -6,8 +6,9 @@ from flask import Response, jsonify, request, make_response
 from flask_restful import Resource
 
 from src.storages.errors import DuplicateError
+from src.storages.base import ReviewSort
 from src.api.v1 import messages as msg
-from src.api.v1.base import StorageMixin, LoginMixin
+from src.api.mixins import StorageMixin, LoginMixin
 from src.services.auth import username_required
 
 
@@ -29,8 +30,6 @@ class Review(StorageMixin, Resource):
         except DuplicateError:
             return jsonify(msg=msg.REVIEW_EXISTS), HTTPStatus.BAD_REQUEST
 
-        return Response(status=HTTPStatus.OK)
-
     def get(self, movie_id: uuid.UUID):
         """Получить список рецензий.
 
@@ -38,7 +37,11 @@ class Review(StorageMixin, Resource):
             movie_id: ИД фильма.
 
         """
-        reviews = self.storage.get_reviews(movie_id=movie_id)
+        sort = (
+            ReviewSort(request.args.get("sort"))
+            if "sort" in request.args else None
+        )
+        reviews = self.storage.get_reviews(movie_id=movie_id, sort=sort)
         return jsonify(reviews)
 
 
