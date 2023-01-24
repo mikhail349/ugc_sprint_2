@@ -27,7 +27,7 @@ class ClickhouseConfig(BaseConfig):
 
     host: str = Field("127.0.0.1", env="CLICKHOUSE_HOST")
     """Хост для подключения."""
-    db_name: str = "movies"
+    db_name: str = "default"
     """Название базы данных."""
     table_name = "views"
     """Название таблицы."""

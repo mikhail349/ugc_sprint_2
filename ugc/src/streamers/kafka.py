@@ -3,12 +3,12 @@ from kafka.admin import NewTopic
 from kafka import errors
 import backoff
 
-from src.storages.base import Storage
+from src.streamers.base import Streamer
 from src.configs.kafka import Topic
 
 
-class Kafka(Storage):
-    """Хранилище Kafka.
+class Kafka(Streamer):
+    """Стример Kafka.
 
     Args:
         servers: перечень серверов в формате host1:port1,host2:port2,...
@@ -54,7 +54,7 @@ class Kafka(Storage):
             pass
 
     @backoff.on_exception(backoff.expo, exception=Exception)
-    def create_view_event(
+    def send_view(
         self,
         username: str,
         movie_id: str,

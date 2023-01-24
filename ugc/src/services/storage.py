@@ -1,7 +1,6 @@
 from flask import Flask
 
-from src.storages.kafka import Kafka
-from src.configs.kafka import kafka_config
+from src.storages.mongo import Mongo
 
 
 def init_storage(app: Flask) -> None:
@@ -11,13 +10,4 @@ def init_storage(app: Flask) -> None:
         app: приложение Flask.
 
     """
-    kafka = Kafka(servers=kafka_config.servers,
-                  producer_timeout=kafka_config.producer_timeout)
-
-    for name, config in kafka_config.topics.items():
-        kafka.create_topic(
-            name=name,
-            num_partitions=config["num_partitions"],
-            replication_factor=config["replication_factor"]
-        )
-    app.config['storage'] = kafka
+    app.config['storage'] = Mongo()

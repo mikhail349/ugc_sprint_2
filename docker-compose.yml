@@ -1,9 +1,103 @@
 version: "3"
 services:
+  app:
+    build: ./ugc
+    env_file:
+      - ./ugc/.env
+    volumes:
+      - ${HOST_JWT_PUBLIC_KEY_PATH}:${JWT_PUBLIC_KEY_PATH}:ro
+    depends_on:
+      - kafka
+      - kafka-2
+  etl:
+    build: ./etl
+    depends_on:
+      - kafka
+      - clickhouse-node1
+    env_file:
+      - ./etl/.env
+  nginx:
+    image: nginx:1.19.2-alpine
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/configs:/etc/nginx/conf.d:ro
+    restart: always
+    depends_on:
+      - app
+    ports:
+      - 80:80
+  # Mongo
+  router01:
+    image: mongo:latest
+    container_name: router-01
+    command: mongos --port 27017 --configdb rs-config-server/configsvr01:27017 --bind_ip_all
+    volumes:
+      - ./deploy/mongodb:/scripts
+      - mongodb_cluster_router01:/data/db
+  configsvr01:
+    image: mongo:latest
+    container_name: mongo-config-01 
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - ./deploy/mongodb:/scripts
+      - mongodb_cluster_configsvr01:/data/db
+    links:
+      - shard01-a
+      - shard02-a 
+  shard01-a:
+    image: mongo:latest
+    container_name: shard-01-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./deploy/mongodb:/scripts
+      - mongodb_cluster_shard01_a:/data/db
+    links:
+      - shard01-b
+      - shard01-c
+  shard01-b:
+    image: mongo:latest
+    container_name: shard-01-node-b
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./deploy/mongodb:/scripts
+      - mongodb_cluster_shard01_b:/data/db
+  shard01-c:
+    image: mongo:latest
+    container_name: shard-01-node-c
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./deploy/mongodb:/scripts
+      - mongodb_cluster_shard01_c:/data/db
+  shard02-a:
+    image: mongo:latest
+    container_name: shard-02-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-02
+    volumes:
+      - ./deploy/mongodb:/scripts
+      - mongodb_cluster_shard02_a:/data/db
+    links:
+      - shard02-b
+      - shard02-c
+  shard02-b:
+    image: mongo:latest
+    container_name: shard-02-node-b
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-02
+    volumes:
+      - ./deploy/mongodb:/scripts
+      - mongodb_cluster_shard02_b:/data/db
+  shard02-c:
+    image: mongo:latest
+    container_name: shard-02-node-c
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-02
+    volumes:
+      - ./deploy/mongodb:/scripts
+      - mongodb_cluster_shard02_c:/data/db
+  # Zookeper
   zookeeper:
     image: 'bitnami/zookeeper:latest'
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
+  # Kafka
   kafka:
     image: 'bitnami/kafka:latest'
     environment:
@@ -26,33 +120,14 @@ services:
       - BOOTSTRAP_SERVERS=kafka:9092,kafka-2:9093
     depends_on:
       - zookeeper
-  app:
-    build: ./ugc
-    env_file:
-      - ./ugc/.env
-    volumes:
-      - ${HOST_JWT_PUBLIC_KEY_PATH}:${JWT_PUBLIC_KEY_PATH}:ro
-    depends_on:
-      - kafka
-  nginx:
-    image: nginx:1.19.2-alpine
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/configs:/etc/nginx/conf.d:ro
-    restart: always
-    depends_on:
-      - app
-    ports:
-      - 80:80
+  # Clickhouse
   clickhouse-node1:
     image: yandex/clickhouse-server:20.4
     container_name: clickhouse-node1
     hostname: clickhouse-node1
-    ports:
-      - "8123:8123"
-      - "9000:9000"
     volumes:
-      - ./clickhouse/data/node1:/etc/clickhouse-server
+      - ./deploy/clickhouse/data/node1:/etc/clickhouse-server
+      - clickhouse_cluster_node1:/var/lib/clickhouse/
     depends_on:
       - zookeeper
   clickhouse-node2:
@@ -60,7 +135,8 @@ services:
     container_name: clickhouse-node2
     hostname: clickhouse-node2
     volumes:
-      - ./clickhouse/data/node2:/etc/clickhouse-server
+      - ./deploy/clickhouse/data/node2:/etc/clickhouse-server
+      - clickhouse_cluster_node2:/var/lib/clickhouse/
     depends_on:
       - zookeeper
   clickhouse-node3:
@@ -68,7 +144,8 @@ services:
     container_name: clickhouse-node3
     hostname: clickhouse-node3
     volumes:
-      - ./clickhouse/data/node3:/etc/clickhouse-server
+      - ./deploy/clickhouse/data/node3:/etc/clickhouse-server
+      - clickhouse_cluster_node3:/var/lib/clickhouse/
     depends_on:
       - zookeeper
   clickhouse-node4:
@@ -76,13 +153,22 @@ services:
     container_name: clickhouse-node4
     hostname: clickhouse-node4
     volumes:
-      - ./clickhouse/data/node4:/etc/clickhouse-server
+      - ./deploy/clickhouse/data/node4:/etc/clickhouse-server
+      - clickhouse_cluster_node4:/var/lib/clickhouse/
     depends_on:
       - zookeeper
-  etl:
-    build: ./etl
-    depends_on:
-      - kafka
-      - clickhouse-node1
-    env_file:
-      - ./etl/.env
+
+volumes:
+  mongodb_cluster_router01:
+  mongodb_cluster_configsvr01:
+  mongodb_cluster_shard01_a:
+  mongodb_cluster_shard01_b:
+  mongodb_cluster_shard01_c:
+  mongodb_cluster_shard02_a:
+  mongodb_cluster_shard02_b:
+  mongodb_cluster_shard02_c:
+
+  clickhouse_cluster_node1:
+  clickhouse_cluster_node2:
+  clickhouse_cluster_node3:
+  clickhouse_cluster_node4:

@@ -1,12 +1,14 @@
 openapi: 3.0.3
 info:
-  title: API хранилища событий
+  title: API обработки событий
   description: |-
     Возможности:
-    - Создать событие
-    
-    Доступные события:
-    - view - просмотр фильмов
+    - Добавить событие просмотра фильма до определенного времени
+    - Добавить, изменить, удалить и получить оценку фильма
+    - Добавить, удалить и получить список избранных фильмов
+    - Добавить, получить список рецензий к фильму
+    - Поставить лайк или дизлайк рецензии
+
   termsOfService: http://swagger.io/terms/
   version: 1.0.0
 externalDocs:
@@ -15,7 +17,10 @@ externalDocs:
 servers:
   - url: /api/v1
 tags:
-  - name: просмотр
+  - name: просмотр фильма
+  - name: оценка фильма
+  - name: избранные фильмы
+  - name: рецензии
 components:
   schemas:
     Message:
@@ -25,18 +30,86 @@ components:
       properties:
         msg:
           type: string
-          example: Missing Authorization Header.
+          example: Some error message.
 
-    ViewEvent:
+    View:
       type: object
       properties:
-        movie_id:
-          type: string
-          format: uuid
-          example: Gcc55edda7acd4128877d02b94430896a
         timestamp:
           type: integer
           example: 1611039931
+          
+    Review:
+      type: object
+      properties:
+        text:
+          type: string
+          example: Some text...
+  
+    ReviewResponse:
+      type: object
+      properties:
+        text:
+          type: string
+          example: Some text...
+        created_at:
+          type: string
+          format: datetime
+          example: 2017-07-21T17:32:28Z
+        creator:
+          type: string
+          example: ivan123
+        movie_rating:
+          type: object
+          properties:
+            creator:
+              type: integer
+              minimum: 0
+              maximum: 10
+              example: 9
+            overall:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 10
+              example: 8.5
+        review_rating:
+          type: object
+          properties:
+            likes:
+              type: integer
+              example: 2
+            dislikes:
+              type: integer
+              example: 1
+          
+    ReviewRating:
+      type: object
+      properties:
+        rating:
+          type: integer
+          example: 10
+          enum: [0, 10]
+
+    MovieRating:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 10
+          example: 3
+          
+    MovieRatingResponse:
+      type: object
+      properties:
+        overall_rating:
+            type: number
+            format: float
+            nullable: true
+            minimum: 0
+            maximum: 10
+            example: 3.5
   securitySchemes:
     BearerAuth:
       type: http
@@ -50,22 +123,263 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Message'
+            
+    BadRequestError:
+      description: Ошибка
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+            
+  parameters:
+    movieID:
+      name: movie_id
+      in: path
+      description: ID фильма
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: 6ffefd8e-a018-e811-bbf9-60f67727d806
+    reviewID:
+      name: review_id
+      in: path
+      description: ID рецензии
+      required: true
+      schema:
+        type: string
+        example: 63ce5156b2520c7a19c99782
 
 paths:
-  /events/view:
+  /movies/{movie_id}/views:
     post:
       tags:
-        - просмотр
+        - просмотр фильма
+      description: Добавить событие просмотра фильма до определенного времени
       security:
         - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/movieID'
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ViewEvent'
+              $ref: '#/components/schemas/View'
         required: true
       responses:
         '200':
           description: Успешно
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+  /movies/{movie_id}/ratings:
+    post:
+      tags:
+        - оценка фильма
+      description: Поставить оценку фильму
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      security:
+      - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieRating'
+      responses:
+        '200':
+          description: Успешно
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+            
+    put:
+      tags:
+        - оценка фильма
+      description: Изменить оценку фильму
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieRating'
+      responses:
+        '200':
+          description: Успешно
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    get:
+      tags:
+        - оценка фильма
+      description: Получить свою оценку фильма
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieRating'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - оценка фильма
+      description: Удалить оценку фильму
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /movies/{movie_id}/ratings/overall:
+    get:
+      tags:
+        - оценка фильма
+      description: Получить оценку фильма
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieRatingResponse'
+  /movies/{movie_id}/reviews:
+    post:
+      tags:
+        - рецензии
+      description: Добавить рецензию к фильму
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: 63ce7812a1dd36e89b35df96
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    get:
+      tags:
+        - рецензии
+      description: Получить список рецензий фильма
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - newest
+              - oldest
+              - most_liked
+              - most_disliked
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewResponse'
+  /movies/{movie_id}/favs:
+    post:
+      tags:
+        - избранные фильмы
+      description: Добавить фильм в избранное
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    delete:
+      tags:
+        - избранные фильмы
+      description: Удалить фильм из избранного
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /movies/favs:
+    get:
+      tags:
+        - избранные фильмы
+      description: Получить список избранных фильмов
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+                example: [6ffefd8e-a018-e811-bbf9-60f67727d806]
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /movies/{movie_id}/reviews/{review_id}/ratings:
+    post:
+      tags:
+        - рецензии
+      description: Поставить лайк (10) или дизлайк (0) рецензии к фильму
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/movieID'
+        - $ref: '#/components/parameters/reviewID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRating'
+      responses:
+        '200':
+          description: Успешно
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      
