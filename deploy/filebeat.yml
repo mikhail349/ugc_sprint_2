@@ -8,6 +8,12 @@ filebeat.inputs:
       keys_under_root: true
       add_error_key: true
 
+  - type: log
+    enabled: true
+    paths:
+      - /app/logs/*
+    tags: [ 'ugc' ]
+
 output.logstash:
   enabled: true
   hosts: ["logstash:5045"]

@@ -1,4 +1,4 @@
-from flask import Blueprint, Flask
+from flask import Blueprint, Flask, request
 
 from src.api.v1.movies import movies
 from src.api.v1.openapi import openapi
@@ -6,6 +6,7 @@ from src.api.v1.openapi import openapi
 from src.services.auth import init_auth
 from src.services.streamer import init_streamer
 from src.services.storage import init_storage
+from src.services.logger import init_logger
 from src.utils.encoders import JSONEncoder
 
 
@@ -16,6 +17,7 @@ app.config['PROPAGATE_EXCEPTIONS'] = True
 init_auth(app)
 init_streamer(app)
 init_storage(app)
+init_logger(app)
 
 
 api = Blueprint("api", __name__, url_prefix="/api")
