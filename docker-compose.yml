@@ -21,11 +21,51 @@ services:
     volumes:
       - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./deploy/nginx/configs:/etc/nginx/conf.d:ro
+      - /tmp/logs/nginx:/var/log/nginx
     restart: always
     depends_on:
       - app
     ports:
       - 80:80
+  logstash:
+    image: logstash:7.10.1
+    environment:
+      XPACK_MONITORING_ENABLED: "false"
+      ES_HOST: "elasticsearch:9200"
+    ports:
+      - "5044:5044/udp"
+    volumes:
+      - ./deploy/logstash.conf:/config/logstash.conf:ro
+    command: logstash -f /config/logstash.conf
+    depends_on:
+      - elasticsearch
+  elasticsearch:
+    image: elasticsearch:7.10.1
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms1000m -Xmx1000m"
+    ports:
+      - 9200:9200
+    volumes:
+      - /tmp/esdata:/tmp/elasticsearch/data
+  kibana:
+    image: kibana:7.10.1
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+  filebeat:
+    image: elastic/filebeat:7.10.1
+    command: filebeat -e -strict.perms=false
+    volumes:
+      - /tmp/logs/nginx:/var/log/nginx:ro
+      - ./deploy/filebeat.yml:/usr/share/filebeat/filebeat.yml
+    depends_on:
+      - app
+      - nginx
+      - logstash
+      - elasticsearch
+      - kibana
   # Mongo
   router01:
     image: mongo:latest
@@ -106,18 +146,6 @@ services:
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://${KAFKA_HOST}:9092
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
-      - BOOTSTRAP_SERVERS=kafka:9092,kafka-2:9093
-    depends_on:
-      - zookeeper
-  kafka-2:
-    image: 'bitnami/kafka:latest'
-    environment:
-      - KAFKA_BROKER_ID=2
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://${KAFKA2_HOST}:9093
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - BOOTSTRAP_SERVERS=kafka:9092,kafka-2:9093
     depends_on:
       - zookeeper
   # Clickhouse
