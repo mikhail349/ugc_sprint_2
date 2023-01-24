@@ -105,7 +105,7 @@ class Mongo(Storage):
         )
 
     def update_movie(self, movie_id: uuid.UUID):
-        """Обновить данные фильма.
+        """Обновить рейнтинг фильма.
 
         Args:
             movie_id: ИД фильма
@@ -318,7 +318,9 @@ class Mongo(Storage):
         }
 
     def update_review(self, filter: dict[str, str]):
-        """Обновить рецензию.
+        """Обновить рецензию:
+        - рейнтинг фильма (общий, авторский)
+        - оценки рецензии (лайки, дизлайки)
 
         Args:
             filter: словарь поиска рецензии
