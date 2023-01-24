@@ -8,7 +8,7 @@ from flask_restful import Resource
 from src.storages.errors import DuplicateError
 from src.storages.base import ReviewSort
 from src.api.v1 import messages as msg
-from src.api.mixins import StorageMixin, LoginMixin
+from src.api.mixins import StorageMixin, LoginMixin, StreamerMixin
 from src.services.auth import username_required
 
 
@@ -45,7 +45,7 @@ class Review(StorageMixin, Resource):
         return jsonify(reviews)
 
 
-class ReviewRating(LoginMixin, StorageMixin, Resource):
+class ReviewRating(LoginMixin, StorageMixin, StreamerMixin, Resource):
     """API ресурс по работе с оценками рецензий."""
 
     def post(self, movie_id: uuid.UUID, review_id: Any):
@@ -55,6 +55,11 @@ class ReviewRating(LoginMixin, StorageMixin, Resource):
             self.storage.add_review_rating(
                 review_id=review_id,
                 username=self.username,
+                rating=rating
+            )
+            self.streamer.send_review_rating(
+                username=self.username,
+                review_id=review_id,
                 rating=rating
             )
         except DuplicateError:
