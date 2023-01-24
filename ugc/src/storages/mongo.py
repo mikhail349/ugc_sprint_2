@@ -11,7 +11,7 @@ from pymongo.collection import Collection as MongoCollection
 from pymongo.errors import DuplicateKeyError
 
 from src.storages.base import Storage, ReviewSort
-from src.configs.mongo import mongo_config
+
 from src.storages.errors import DuplicateError, DoesNotExistError
 from src.models.review import Review
 
@@ -41,13 +41,18 @@ def get_review_sort_query(sort: ReviewSort) -> dict:
 
 
 class Mongo(Storage):
-    """Хранилище Mongo."""
+    """Хранилище Mongo.
 
-    def __init__(self) -> None:
-        self.client = pymongo.MongoClient(
-            f"mongodb://{mongo_config.host}:{mongo_config.port}"
-        )
-        self.db = self.client[mongo_config.db]
+    Args:
+        host: хост
+        port: порт
+        db: база данных
+
+    """
+
+    def __init__(self, host: str, port: int, db: str) -> None:
+        self.client = pymongo.MongoClient(f"mongodb://{host}:{port}")
+        self.db = self.client[db]
         self.init_collections()
 
     def init_collections(self):
@@ -328,9 +333,9 @@ class Mongo(Storage):
         """
         review = self.reviews.find_one(filter)
         if not review:
-            return
+           return
 
-        self.reviews.find_one_and_update(
+        self.reviews.update_one(
             {
                 "_id": review["_id"]
             },
