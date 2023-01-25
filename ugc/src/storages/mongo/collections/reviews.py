@@ -73,13 +73,13 @@ class ReviewsCollection(BaseCollection):
         })
         return result.inserted_id
 
-    def update(
+    def update_ratings(
         self,
         review_id: t.Any,
         review_rating: LikeDislikeRating,
         moview_rating: MovieRating
     ):
-        """Обновить данные рецензии.
+        """Обновить рейтинги рецензии.
 
         Args:
             review_id: ИД рецензии

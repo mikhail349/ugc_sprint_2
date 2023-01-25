@@ -187,7 +187,7 @@ class Mongo(Storage):
             object_id=review["_id"],
             object_type=ObjectType.REVIEW
         )
-        self.reviews.update(
+        self.reviews.update_ratings(
             review_id=review["_id"],
             review_rating=review_rating,
             moview_rating=movie_rating
