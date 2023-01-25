@@ -1,18 +1,19 @@
-import uuid
 from bson.codec_options import CodecOptions
 from bson.binary import UuidRepresentation
 from bson import ObjectId
-import datetime
 from typing import Any
 import enum
+import datetime
+import uuid
 
 import pymongo
 from pymongo.collection import Collection as MongoCollection
 from pymongo.errors import DuplicateKeyError
+from pymongo.database import Database as MongoDatabase
 
 from src.storages.base import Storage, ReviewSort
-from src.configs.mongo import mongo_config
 from src.storages.errors import DuplicateError, DoesNotExistError
+from src.storages.mongo.collections.favs_collection import FavsCollection
 from src.models.review import Review
 
 
@@ -41,14 +42,17 @@ def get_review_sort_query(sort: ReviewSort) -> dict:
 
 
 class Mongo(Storage):
-    """Хранилище Mongo."""
+    """Хранилище Mongo.
 
-    def __init__(self) -> None:
-        self.client = pymongo.MongoClient(
-            f"mongodb://{mongo_config.host}:{mongo_config.port}"
-        )
-        self.db = self.client[mongo_config.db]
-        self.init_collections()
+    Args:
+        db: База данных Mongo
+        favs: Коллекция избранных фильмов
+
+    """
+
+    def __init__(self, db: MongoDatabase, favs: FavsCollection) -> None:
+        self.db = db
+        self.favs = favs
 
     def init_collections(self):
         """Инициализировать коллекции."""
@@ -83,14 +87,6 @@ class Mongo(Storage):
                 ("object_id", pymongo.ASCENDING),
                 ("object_type", pymongo.ASCENDING),
                 ("username", pymongo.ASCENDING)
-            ],
-            unique=True
-        )
-
-        self.favs = get_collection("favs")
-        self.favs.create_index(
-            [
-                ("username", pymongo.ASCENDING),
             ],
             unique=True
         )
@@ -148,7 +144,7 @@ class Mongo(Storage):
         rating: int
     ) -> None:
         try:
-            with self.client.start_session() as session:
+            with self.db.client.start_session() as session:
                 with session.start_transaction():
                     self.ratings.insert_one({
                         "object_id": movie_id,
@@ -170,7 +166,7 @@ class Mongo(Storage):
         username: str,
         rating: int
     ) -> None:
-        with self.client.start_session() as session:
+        with self.db.client.start_session() as session:
             with session.start_transaction():
                 result = self.ratings.find_one_and_update(
                     {
@@ -193,7 +189,7 @@ class Mongo(Storage):
                 })
 
     def delete_rating(self, movie_id: uuid.UUID, username: str) -> None:
-        with self.client.start_session() as session:
+        with self.db.client.start_session() as session:
             with session.start_transaction():
                 result = self.ratings.find_one_and_delete({
                     "object_id": movie_id,
@@ -225,35 +221,13 @@ class Mongo(Storage):
         return movie["rating"]
 
     def add_to_fav(self, movie_id: uuid.UUID, username: str) -> None:
-        self.favs.update_one(
-            {
-                "username": username
-            },
-            {
-                "$addToSet": {
-                    "fav_movies": movie_id
-                }
-            },
-            upsert=True
-        )
+        self.favs.add(movie_id=movie_id, username=username)
 
     def delete_from_fav(self, movie_id: uuid.UUID, username: str) -> None:
-        self.favs.update_one(
-            {
-                "username": username
-            },
-            {
-                "$pull": {
-                    "fav_movies": movie_id
-                }
-            }
-        )
+        self.favs.delete(movie_id=movie_id, username=username)
 
     def get_favs(self, username: str) -> list[uuid.UUID]:
-        result = self.favs.find_one({"username": username})
-        if not result:
-            return []
-        return result["fav_movies"]
+        return self.favs.get(username=username)
 
     def get_review_movie_rating(
         self,
@@ -328,9 +302,9 @@ class Mongo(Storage):
         """
         review = self.reviews.find_one(filter)
         if not review:
-            return
+           return
 
-        self.reviews.find_one_and_update(
+        self.reviews.update_one(
             {
                 "_id": review["_id"]
             },
@@ -348,7 +322,7 @@ class Mongo(Storage):
         )
 
     def add_review(self, username: str, movie_id: uuid.UUID, text: str) -> Any:
-        with self.client.start_session() as session:
+        with self.db.client.start_session() as session:
             with session.start_transaction():
                 try:
                     result = self.reviews.insert_one({
@@ -388,7 +362,7 @@ class Mongo(Storage):
         return [Review(**review).dict() for review in reviews]
 
     def add_review_rating(self, review_id: Any, username: str, rating: int):
-        with self.client.start_session() as session:
+        with self.db.client.start_session() as session:
             with session.start_transaction():
                 try:
                     self.ratings.insert_one({
