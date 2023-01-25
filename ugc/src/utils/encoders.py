@@ -8,6 +8,6 @@ class JSONEncoder(BaseJSONEncoder):
     def default(self, o):
         if isinstance(o, ObjectId):
             return str(o)
-        elif isinstance(o, (datetime, date)):
+        if isinstance(o, (datetime, date)):
             return o.isoformat()
         return super().default(o)
