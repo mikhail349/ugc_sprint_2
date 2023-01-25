@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import datetime
 import uuid
 
@@ -7,8 +7,8 @@ from pydantic import BaseModel, Field
 
 class MovieRating(BaseModel):
     """Модель рейтингов фильма."""
-    creator: int = None
-    overall: float = None
+    creator: Optional[int] = None
+    overall: Optional[float] = None
 
 
 class ReviewRating(BaseModel):
