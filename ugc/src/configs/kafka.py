@@ -9,6 +9,9 @@ from src.configs.base import BaseConfig
 class Topic(str, Enum):
     """Перечисление топиков."""
     VIEWS = "views"
+    """Просмотры фильмов."""
+    RATINGS = "ratings"
+    """Оценки рецензий."""
 
 
 class KafkaConfig(BaseConfig):

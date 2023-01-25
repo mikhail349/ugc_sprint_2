@@ -1,6 +1,7 @@
 from flask import Flask
 
 from src.storages.mongo import Mongo
+from src.configs.mongo import mongo_config
 
 
 def init_storage(app: Flask) -> None:
@@ -10,4 +11,4 @@ def init_storage(app: Flask) -> None:
         app: приложение Flask.
 
     """
-    app.config['storage'] = Mongo()
+    app.config['storage'] = Mongo(**mongo_config.dict())

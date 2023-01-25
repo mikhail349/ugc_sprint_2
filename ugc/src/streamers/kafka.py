@@ -1,6 +1,7 @@
 from kafka import KafkaAdminClient, KafkaProducer
 from kafka.admin import NewTopic
 from kafka import errors
+from kafka.producer.future import FutureRecordMetadata
 import backoff
 
 from src.streamers.base import Streamer
@@ -21,6 +22,23 @@ class Kafka(Streamer):
         self.producer = KafkaProducer(
             bootstrap_servers=self.servers
         )
+    
+    @backoff.on_exception(backoff.expo, exception=errors.BrokerResponseError)
+    def send(self, topic: Topic, key: str = None, value: str = None):
+        """Отправить сообщение в Kafka.
+
+        Args:
+            topic: топик класса Topic
+            key: ключ
+            value: значение
+
+        """
+        future: FutureRecordMetadata = self.producer.send(
+            topic=topic.value,
+            key=key.encode() if key else None,
+            value=value.encode() if value else None
+        )
+        future.get(timeout=self.producer_timeout)
 
     @backoff.on_exception(backoff.expo, exception=Exception)
     def create_topic(
@@ -53,18 +71,20 @@ class Kafka(Streamer):
         except errors.TopicAlreadyExistsError:
             pass
 
-    @backoff.on_exception(backoff.expo, exception=Exception)
-    def send_view(
-        self,
-        username: str,
-        movie_id: str,
-        timestamp: int
-    ) -> None:
+    def send_view(self, username: str, movie_id: str, timestamp: int):
         key = f"{username}_{movie_id}"
         value = str(timestamp)
-        future = self.producer.send(
-            topic=Topic.VIEWS.value,
-            key=key.encode(),
-            value=value.encode(),
+        self.send(
+            topic=Topic.VIEWS,
+            key=key,
+            value=value
         )
-        future.get(timeout=self.producer_timeout)
+
+    def send_review_rating(self, username: str, review_id: str, rating: int):
+        key = f"{username}_{review_id}"
+        value = str(rating)
+        self.send(
+            topic=Topic.RATINGS,
+            key=key,
+            value=value
+        )
