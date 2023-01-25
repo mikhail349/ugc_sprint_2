@@ -8,7 +8,7 @@ from src.storages.mongo.collections.base import BaseCollection
 
 class FavsCollection(BaseCollection):
     """Класс коллекции избранных фильмов."""
-    
+
     def __init__(self, db: MongoDatabase) -> None:
         super().__init__(db)
 
