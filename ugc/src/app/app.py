@@ -21,7 +21,6 @@ sentry_sdk.init(
 init_auth(app)
 init_streamer(app)
 init_storage(app)
-init_logger(app)
 
 
 api = Blueprint("api", __name__, url_prefix="/api")

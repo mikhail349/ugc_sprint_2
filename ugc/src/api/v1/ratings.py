@@ -7,6 +7,7 @@ from flask_restful import Resource
 from src.storages.errors import DuplicateError, DoesNotExistError
 from src.api.v1 import messages as msg
 from src.api.mixins import StorageMixin, LoginMixin
+from src.services.logger import logger
 
 
 class Rating(LoginMixin, StorageMixin, Resource):
@@ -22,6 +23,7 @@ class Rating(LoginMixin, StorageMixin, Resource):
                 username=self.username,
                 rating=rating
             )
+            logger.info("Movie rating is created")
         except DuplicateError:
             return make_response(
                 jsonify(msg=msg.MOVIE_RATING_EXISTS),
@@ -40,6 +42,7 @@ class Rating(LoginMixin, StorageMixin, Resource):
                 username=self.username,
                 rating=rating
             )
+            logger.info("Movie rating is updated")
         except DoesNotExistError:
             return make_response(
                 jsonify(msg=msg.MOVIE_RATING_DOES_NOT_EXIST),
@@ -55,6 +58,7 @@ class Rating(LoginMixin, StorageMixin, Resource):
                 movie_id=movie_id,
                 username=self.username
             )
+            logger.info("Movie rating is deleted")
         except DoesNotExistError:
             return make_response(
                 jsonify(msg=msg.MOVIE_RATING_DOES_NOT_EXIST),

@@ -5,6 +5,7 @@ from flask import request, Response
 from flask_restful import Resource
 
 from src.api.mixins import StreamerMixin, LoginMixin
+from src.services.logger import logger
 
 
 class View(LoginMixin, StreamerMixin, Resource):
@@ -15,4 +16,9 @@ class View(LoginMixin, StreamerMixin, Resource):
 
         timestamp = request.json.get("timestamp")
         self.streamer.send_view(self.username, movie_id, timestamp)
+        logger.info(
+            f"Event is sent: user {self.username} "
+            f"movie {movie_id} "
+            f"timestamp {timestamp}"
+        )
         return Response(status=HTTPStatus.OK)

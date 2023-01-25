@@ -7,6 +7,7 @@ from flask_restful import Resource
 from src.storages.errors import DuplicateError
 from src.api.v1 import messages as msg
 from src.api.mixins import StorageMixin, LoginMixin
+from src.services.logger import logger
 
 
 class FavMovie(LoginMixin, StorageMixin, Resource):
@@ -17,6 +18,7 @@ class FavMovie(LoginMixin, StorageMixin, Resource):
 
         try:
             self.storage.add_to_fav(movie_id=movie_id, username=self.username)
+            logger.info("Movie is added to favourites")
         except DuplicateError:
             return jsonify(msg=msg.FAV_MOVIE_EXISTS), HTTPStatus.BAD_REQUEST
 
@@ -26,6 +28,7 @@ class FavMovie(LoginMixin, StorageMixin, Resource):
         """Удалить фильм из избранного."""
 
         self.storage.delete_from_fav(movie_id=movie_id, username=self.username)
+        logger.info("Movie is deleted from favourites")
         return Response(status=HTTPStatus.OK)
 
 
