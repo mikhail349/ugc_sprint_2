@@ -25,6 +25,8 @@ jobs:
       - name: Lint with flake8
         run: |
           flake8 .
-      - name: Analysing the code with mypy
+      - name: Analysing code with mypy
         run: |
-          mypy .
+          export MYPYPATH=src/
+          mypy etl --ignore-missing-imports
+          mypy ugc --ignore-missing-imports
