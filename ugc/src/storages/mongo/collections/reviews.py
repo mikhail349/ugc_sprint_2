@@ -58,7 +58,7 @@ class ReviewsCollection(BaseCollection):
             username: имя пользователя-автора
             moview_rating: оценка фильма `MovieRating`
             review_rating: оценка рецензии `LikeDislikeRating`
-        
+
         Returns:
             ObjectId: ИД рецензии
 
