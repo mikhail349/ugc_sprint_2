@@ -31,3 +31,14 @@ jobs:
           pip3 install types-PyYAML==6.0.12.3
           mypy etl --ignore-missing-imports --follow-imports=skip
           mypy ugc --ignore-missing-imports --follow-imports=skip
+  notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: send message to telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            ${{ github.actor }} made new change to the repository ${{ github.repository }}
+            Details: https://github.com/${{ github.repository }}/commit/${{github.sha}}
