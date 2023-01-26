@@ -125,10 +125,12 @@ class ReviewsCollection(BaseCollection):
                                     "$cond": [
                                         {
                                             "$eq": [
-                                                "$username", "$$creator"
+                                                "$username",
+                                                "$$creator"
                                             ]
                                         },
-                                        "$rating", 0
+                                        "$rating",
+                                        None
                                     ]
                                 },
                                 "rating": "$rating"
@@ -138,7 +140,7 @@ class ReviewsCollection(BaseCollection):
                             "$group": {
                                 "_id": "$object_id",
                                 "creator": {
-                                    "$sum": "$creator_rating",
+                                    "$max": "$creator_rating",
                                 },
                                 "overall": {
                                     "$avg": "$rating",
