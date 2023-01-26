@@ -1,3 +1,6 @@
+import uuid
+from typing import Optional
+
 from kafka import KafkaAdminClient, KafkaProducer
 from kafka.admin import NewTopic
 from kafka import errors
@@ -22,9 +25,11 @@ class Kafka(Streamer):
         self.producer = KafkaProducer(
             bootstrap_servers=self.servers
         )
-    
+
     @backoff.on_exception(backoff.expo, exception=errors.BrokerResponseError)
-    def send(self, topic: Topic, key: str = None, value: str = None):
+    def send(self, topic: Topic,
+             key: Optional[str] = None,
+             value: Optional[str] = None):
         """Отправить сообщение в Kafka.
 
         Args:
@@ -71,7 +76,7 @@ class Kafka(Streamer):
         except errors.TopicAlreadyExistsError:
             pass
 
-    def send_view(self, username: str, movie_id: str, timestamp: int):
+    def send_view(self, username: str, movie_id: uuid.UUID, timestamp: int):
         key = f"{username}_{movie_id}"
         value = str(timestamp)
         self.send(

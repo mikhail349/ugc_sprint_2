@@ -3,7 +3,7 @@ from bson.codec_options import CodecOptions
 from bson.binary import UuidRepresentation
 from bson import ObjectId
 import datetime
-from typing import Any
+from typing import Any, Optional
 import enum
 
 import pymongo
@@ -322,7 +322,7 @@ class Mongo(Storage):
             "dislikes": result[0]["dislikes"] if result else 0
         }
 
-    def update_review(self, filter: dict[str, str]):
+    def update_review(self, filter: dict[str, str | uuid.UUID]):
         """Обновить рецензию:
         - рейнтинг фильма (общий, авторский)
         - оценки рецензии (лайки, дизлайки)
@@ -333,7 +333,7 @@ class Mongo(Storage):
         """
         review = self.reviews.find_one(filter)
         if not review:
-           return
+            return
 
         self.reviews.update_one(
             {
@@ -377,7 +377,7 @@ class Mongo(Storage):
     def get_reviews(
         self,
         movie_id: uuid.UUID,
-        sort: ReviewSort = None
+        sort: Optional[ReviewSort] = None
     ) -> list:
         pipeline = [
             {
