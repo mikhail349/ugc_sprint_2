@@ -1,4 +1,4 @@
-from typing import Any, Optional
+import typing as t
 import datetime
 import uuid
 
@@ -9,7 +9,7 @@ from src.models.rating import MovieRating, LikeDislikeRating
 
 class Review(BaseModel):
     """Модель рецензии."""
-    id: Any = Field(alias="_id")
+    id: t.Any = Field(alias="_id")
     creator: str
     movie_id: uuid.UUID
     text: str
