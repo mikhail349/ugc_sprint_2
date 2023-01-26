@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+import typing as t
 import uuid
 import enum
 
@@ -72,7 +72,7 @@ class Storage(ABC):
         self,
         movie_id: uuid.UUID,
         username: str
-    ) -> int | None:
+    ) -> t.Union[int, None]:
         """Получить свою оценку фмльма.
 
         Args
@@ -85,7 +85,7 @@ class Storage(ABC):
         """
 
     @abstractmethod
-    def get_overall_rating(self, movie_id: uuid.UUID) -> float | None:
+    def get_overall_rating(self, movie_id: uuid.UUID) -> t.Union[float, None]:
         """Получить оценку фмльма.
 
         Args
@@ -117,7 +117,7 @@ class Storage(ABC):
         """
 
     @abstractmethod
-    def get_favs(self, username: str) -> list[uuid.UUID]:
+    def get_favs(self, username: str) -> t.List[uuid.UUID]:
         """Получить избранные фильмы.
 
         Args:
@@ -131,7 +131,7 @@ class Storage(ABC):
         username: str,
         movie_id: uuid.UUID,
         text: str
-    ) -> Any:
+    ) -> t.Any:
         """Добавить рецензию к фильму.
 
         Args:
@@ -148,8 +148,8 @@ class Storage(ABC):
     def get_reviews(
         self,
         movie_id: uuid.UUID,
-        sort: Optional[ReviewSort] = None
-    ) -> list[Review]:
+        sort: t.Optional[ReviewSort] = None
+    ) -> t.List[Review]:
         """Получить список рецензий к фильму.
 
         Args:
@@ -162,7 +162,7 @@ class Storage(ABC):
         """
 
     @abstractmethod
-    def add_review_rating(self, review_id: Any, username: str, rating: int):
+    def add_review_rating(self, review_id: t.Any, username: str, rating: int):
         """Поставить оценку ревью.
 
         Args:

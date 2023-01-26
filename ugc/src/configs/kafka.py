@@ -1,4 +1,4 @@
-from typing import Any
+import typing as t
 from enum import Enum
 
 from pydantic import Field
@@ -21,7 +21,7 @@ class KafkaConfig(BaseConfig):
     """Перечень серверов в формате host1:port1,host2:port2,... """
     producer_timeout: int = Field(60, env="KAFKA_PRODUCER_TIMEOUT")
     """Таймаут ожидания на запись."""
-    topics: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    topics: t.Dict[str, t.Dict[str, t.Any]] = Field(default_factory=dict)
     """Топики."""
 
     def config_topic(
