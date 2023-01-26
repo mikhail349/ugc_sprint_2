@@ -115,7 +115,11 @@ class Mongo(Storage):
                     "creator": username
                 })
 
-    def get_rating(self, movie_id: uuid.UUID, username: str) -> t.Union[int, None]:
+    def get_rating(
+        self,
+        movie_id: uuid.UUID,
+        username: str
+    ) -> t.Union[int, None]:
         return self.ratings.get(
             object_id=movie_id,
             object_type=ObjectType.MOVIE,
@@ -194,7 +198,12 @@ class Mongo(Storage):
             moview_rating=movie_rating
         )
 
-    def add_review(self, username: str, movie_id: uuid.UUID, text: str) -> t.Any:
+    def add_review(
+        self,
+        username: str,
+        movie_id: uuid.UUID,
+        text: str
+    ) -> t.Any:
         with self.db.client.start_session() as session:
             with session.start_transaction():
                 try:
