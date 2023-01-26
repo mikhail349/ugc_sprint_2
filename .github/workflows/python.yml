@@ -28,6 +28,6 @@ jobs:
       - name: Analysing code with mypy
         run: |
           export MYPYPATH=src/
-          python3 -m pip install types-PyYAML
+          mypy --install-types -r ugc/requirements.txt
           mypy etl --ignore-missing-imports --follow-imports=skip
           mypy ugc --ignore-missing-imports --follow-imports=skip
