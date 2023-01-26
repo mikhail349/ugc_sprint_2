@@ -10,6 +10,7 @@ from src.storages.base import ReviewSort
 from src.api.v1 import messages as msg
 from src.api.mixins import StorageMixin, LoginMixin, StreamerMixin
 from src.services.auth import username_required
+from src.services.logger import logger
 
 
 class Review(StorageMixin, Resource):
@@ -26,6 +27,7 @@ class Review(StorageMixin, Resource):
                 username=username,
                 text=text
             )
+            logger.info("Review is created")
             return jsonify(id=review_id)
         except DuplicateError:
             return jsonify(msg=msg.REVIEW_EXISTS), HTTPStatus.BAD_REQUEST
@@ -62,6 +64,7 @@ class ReviewRating(LoginMixin, StorageMixin, StreamerMixin, Resource):
                 review_id=review_id,
                 rating=rating
             )
+            logger.info("Review rating is created")
         except DuplicateError:
             return make_response(
                 jsonify(msg=msg.REVIEW_RATING_EXISTS),

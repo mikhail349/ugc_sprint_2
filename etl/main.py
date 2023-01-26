@@ -1,4 +1,3 @@
-import logging
 import time
 import uuid
 
@@ -9,6 +8,7 @@ from kafka import KafkaConsumer
 from kafka.errors import KafkaError
 
 from etl.configs import clickhouse_config, kafka_config, etl_config
+from etl.logger import logger, init_logger
 
 
 @backoff.on_exception(wait_gen=backoff.expo, exception=Exception)
@@ -19,7 +19,7 @@ def load_views_to_clickhouse(data) -> None:
         f"(id, user_id, movie_id, timestamp) VALUES",
         data,
     )
-    logging.info(f"{len(data)} record(s) loaded to clickhouse")
+    logger.info(f"{len(data)} record(s) loaded to clickhouse")
 
 
 @backoff.on_exception(wait_gen=backoff.expo, exception=Exception)
@@ -43,7 +43,7 @@ def load_data_kafka_to_clickhouse() -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    init_logger()
     kafka_consumer = KafkaConsumer(
         kafka_config.topic_name,
         bootstrap_servers=kafka_config.servers.split(","),
@@ -55,6 +55,6 @@ if __name__ == "__main__":
     try:
         load_data_kafka_to_clickhouse()
     except Error as e:
-        logging.error(f"Clickhouse error: {e}")
+        logger.error(f"Clickhouse error: {e}")
     except KafkaError as e:
-        logging.error(f"Kafka error: {e}")
+        logger.error(f"Kafka error: {e}")
