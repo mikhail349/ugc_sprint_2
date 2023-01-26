@@ -40,5 +40,6 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            ${{ github.actor }} made new change to the repository ${{ github.repository }}
-            Details: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+            ${{ github.actor }} made ${{ github.event_name }} to the branch `${{ github.ref_name }}` of the repository `${{ github.repository }}`
+            
+            Details: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
