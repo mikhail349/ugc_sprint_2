@@ -92,7 +92,7 @@ class RatingsCollection(BaseCollection):
         object_id: t.Any,
         object_type: ObjectType,
         username: str
-    ) -> None:
+    ):
         """Удалить оценку.
 
         Args
@@ -114,7 +114,7 @@ class RatingsCollection(BaseCollection):
         object_id: t.Any,
         object_type: ObjectType,
         username: str
-    ) -> int | None:
+    ) -> t.Union[int, None]:
         """Получить оценку пользователя.
 
         Args
@@ -133,12 +133,13 @@ class RatingsCollection(BaseCollection):
         })
         if result:
             return result["rating"]
+        return None
 
     def get_aggregated_rating(
         self,
         object_id: t.Any,
         object_type: ObjectType
-    ) -> float | None:
+    ) -> t.Union[float, None]:
         """Получить агрегированную оценку.
 
         Args
@@ -167,6 +168,7 @@ class RatingsCollection(BaseCollection):
         ]))
         if ratings:
             return ratings[0]["avg_rating"]
+        return None
 
     def get_likes_dislikes_count(
         self,

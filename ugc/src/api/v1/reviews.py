@@ -42,7 +42,7 @@ class Review(StorageMixin, Resource):
             if "sort" in request.args else None
         )
         reviews = self.storage.get_reviews(movie_id=movie_id, sort=sort)
-        return jsonify(reviews)
+        return jsonify([review.dict() for review in reviews])
 
 
 class ReviewRating(LoginMixin, StorageMixin, StreamerMixin, Resource):

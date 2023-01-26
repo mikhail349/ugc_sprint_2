@@ -1,4 +1,5 @@
 import uuid
+import typing as t
 
 from pymongo.database import Database as MongoDatabase
 import pymongo
@@ -59,7 +60,7 @@ class FavsCollection(BaseCollection):
             }
         )
 
-    def get(self, username: str) -> list[uuid.UUID]:
+    def get(self, username: str) -> t.List[uuid.UUID]:
         """Получить избранные фильмы.
 
         Args:

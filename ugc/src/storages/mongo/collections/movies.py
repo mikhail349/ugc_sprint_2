@@ -1,4 +1,5 @@
 import uuid
+import typing as t
 
 from pymongo.database import Database as MongoDatabase
 import pymongo
@@ -32,7 +33,7 @@ class MoviesCollection(BaseCollection):
         """
         return self.coll.find_one({"movie_id": movie_id})
 
-    def update(self, movie_id: uuid.UUID, rating: float):
+    def update(self, movie_id: uuid.UUID, rating: t.Optional[float]):
         """Обновить фильм.
 
         Args:
