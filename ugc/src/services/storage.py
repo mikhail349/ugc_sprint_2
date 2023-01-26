@@ -25,7 +25,6 @@ def init_storage(app: Flask) -> None:
     ratings = RatingsCollection(db)
 
     app.config['storage'] = Mongo(
-        db=db,
         favs=favs,
         reviews=reviews,
         ratings=ratings

@@ -14,5 +14,5 @@ class Review(BaseModel):
     movie_id: uuid.UUID
     text: str
     created_at: datetime.datetime
-    movie_rating: MovieRating
-    review_rating: LikeDislikeRating
+    movie_rating: t.Optional[MovieRating] = None
+    review_rating: t.Optional[LikeDislikeRating] = None

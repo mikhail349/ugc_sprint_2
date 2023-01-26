@@ -8,7 +8,7 @@ import pymongo
 
 from src.storages.base import ReviewSort
 from src.storages.mongo.collections.base import BaseCollection
-from src.models.rating import LikeDislikeRating, MovieRating
+from src.storages.mongo.collections.ratings import ObjectType
 
 
 def get_review_sort_query(sort: ReviewSort) -> t.Dict:
@@ -46,9 +46,7 @@ class ReviewsCollection(BaseCollection):
         self,
         text: str,
         movie_id: uuid.UUID,
-        username: str,
-        moview_rating: MovieRating,
-        review_rating: LikeDislikeRating
+        username: str
     ) -> ObjectId:
         """Добавить рецензию.
 
@@ -56,8 +54,6 @@ class ReviewsCollection(BaseCollection):
             text: текст рецензии
             movie_id: ИД фильма
             username: имя пользователя-автора
-            moview_rating: оценка фильма `MovieRating`
-            review_rating: оценка рецензии `LikeDislikeRating`
 
         Returns:
             ObjectId: ИД рецензии
@@ -67,36 +63,9 @@ class ReviewsCollection(BaseCollection):
             "creator": username,
             "movie_id": movie_id,
             "text": text,
-            "created_at": datetime.datetime.now(),
-            "movie_rating": moview_rating.dict(),
-            "review_rating": review_rating.dict()
+            "created_at": datetime.datetime.now()
         })
         return result.inserted_id
-
-    def update_ratings(
-        self,
-        review_id: t.Any,
-        review_rating: LikeDislikeRating,
-        moview_rating: MovieRating
-    ):
-        """Обновить рейтинги рецензии.
-
-        Args:
-            review_id: ИД рецензии
-            review_rating: оценка рецензии `LikeDislikeRating`
-            moview_rating: оценка фильма `MovieRating`
-        """
-        self.coll.update_one(
-            {
-                "_id": review_id
-            },
-            {
-                "$set": {
-                    "movie_rating": moview_rating.dict(),
-                    "review_rating": review_rating.dict()
-                }
-            }
-        )
 
     def get(self, filter: t.Dict[str, str]) -> t.Union[t.Dict, None]:
         """Получить данные рецензии.
@@ -125,12 +94,116 @@ class ReviewsCollection(BaseCollection):
             list: список рецензий
 
         """
+        OBJ_MOVIE = ObjectType.MOVIE.value
         pipeline = [
             {
                 "$match": {
                     "movie_id": movie_id
                 }
-            }
+            },
+            {
+                "$lookup": {
+                    "from": "ratings",
+                    "let": {
+                        "movie_id": "$movie_id",
+                        "creator": "$creator"
+                    },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$and": [
+                                        {"$eq": ["$object_id",  "$$movie_id"]},
+                                        {"$eq": ["$object_type", OBJ_MOVIE]}
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "$project": {
+                                "creator_rating": {
+                                    "$cond": [
+                                        {
+                                            "$eq": [
+                                                "$username", "$$creator"
+                                            ]
+                                        },
+                                        "$rating", 0
+                                    ]
+                                },
+                                "rating": "$rating"
+                            }
+                        },
+                        {
+                            "$group": {
+                                "_id": "$object_id",
+                                "creator": {
+                                    "$sum": "$creator_rating",
+                                },
+                                "overall": {
+                                    "$avg": "$rating",
+                                }
+                            }
+                        },
+                    ],
+                    "as": "movie_rating"
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "ratings",
+                    "let": {
+                        "review_id": "$_id"
+                    },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$eq": ["$object_id",  "$$review_id"]
+                                }
+                            }
+                        },
+                        {
+                            "$project": {
+                                "likes": {
+                                    "$cond": [
+                                        {"$eq": ["$rating", 10]}, 1, 0
+                                    ]
+                                },
+                                "dislikes": {
+                                    "$cond": [
+                                        {"$eq": ["$rating", 0]}, 1, 0
+                                    ]
+                                },
+                            }
+                        },
+                        {
+                            "$group": {
+                                "_id": "$object_id",
+                                "likes": {
+                                    "$sum": "$likes"
+                                },
+                                "dislikes": {
+                                    "$sum": "$dislikes"
+                                }
+                            }
+                        }
+                    ],
+                    "as": "review_rating"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$movie_rating",
+                    "preserveNullAndEmptyArrays": True
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$review_rating",
+                    "preserveNullAndEmptyArrays": True
+                }
+            },
         ]
         if sort:
             pipeline.append(get_review_sort_query(sort))

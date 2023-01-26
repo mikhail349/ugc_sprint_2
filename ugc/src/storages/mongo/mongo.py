@@ -3,7 +3,6 @@ import typing as t
 import uuid
 
 from pymongo.errors import DuplicateKeyError
-from pymongo.database import Database as MongoDatabase
 
 from src.storages.base import Storage, ReviewSort
 from src.storages.errors import DuplicateError
@@ -19,7 +18,6 @@ class Mongo(Storage):
     """Хранилище Mongo.
 
     Args:
-        db: база данных Mongo
         favs: коллекция избранных фильмов
         ratings: коллекция оценок
         reviews: коллекция рецензий
@@ -28,12 +26,10 @@ class Mongo(Storage):
 
     def __init__(
         self,
-        db: MongoDatabase,
         favs: FavsCollection,
         ratings: RatingsCollection,
         reviews: ReviewsCollection
     ) -> None:
-        self.db = db
         self.favs = favs
         self.ratings = ratings
         self.reviews = reviews
@@ -45,18 +41,12 @@ class Mongo(Storage):
         rating: int
     ) -> None:
         try:
-            with self.db.client.start_session() as session:
-                with session.start_transaction():
-                    self.ratings.add(
-                        object_id=movie_id,
-                        object_type=ObjectType.MOVIE,
-                        username=username,
-                        rating=rating
-                    )
-                    self.update_review({
-                        "movie_id": movie_id,
-                        "creator": username
-                    })
+            self.ratings.add(
+                object_id=movie_id,
+                object_type=ObjectType.MOVIE,
+                username=username,
+                rating=rating
+            )
         except DuplicateKeyError:
             raise DuplicateError()
 
@@ -66,31 +56,19 @@ class Mongo(Storage):
         username: str,
         rating: int
     ) -> None:
-        with self.db.client.start_session() as session:
-            with session.start_transaction():
-                self.ratings.edit(
-                    object_id=movie_id,
-                    object_type=ObjectType.MOVIE,
-                    username=username,
-                    rating=rating
-                )
-                self.update_review({
-                    "movie_id": movie_id,
-                    "creator": username
-                })
+        self.ratings.edit(
+            object_id=movie_id,
+            object_type=ObjectType.MOVIE,
+            username=username,
+            rating=rating
+        )
 
     def delete_rating(self, movie_id: uuid.UUID, username: str) -> None:
-        with self.db.client.start_session() as session:
-            with session.start_transaction():
-                self.ratings.delete(
-                    object_id=movie_id,
-                    object_type=ObjectType.MOVIE,
-                    username=username
-                )
-                self.update_review({
-                    "movie_id": movie_id,
-                    "creator": username
-                })
+        self.ratings.delete(
+            object_id=movie_id,
+            object_type=ObjectType.MOVIE,
+            username=username
+        )
 
     def get_rating(
         self,
@@ -147,34 +125,6 @@ class Mongo(Storage):
             overall=overall_rating
         )
 
-    def update_review(self, filter: t.Dict[str, t.Any]):
-        """Обновить рецензию:
-
-        - рейнтинг фильма (общий, авторский)
-        - оценки рецензии (лайки, дизлайки)
-
-        Args:
-            filter: словарь поиска рецензии
-
-        """
-        review = self.reviews.get(filter=filter)
-        if not review:
-            return
-
-        movie_rating = self.get_review_movie_rating(
-            movie_id=review["movie_id"],
-            username=review["creator"]
-        )
-        review_rating = self.ratings.get_likes_dislikes_count(
-            object_id=review["_id"],
-            object_type=ObjectType.REVIEW
-        )
-        self.reviews.update_ratings(
-            review_id=review["_id"],
-            review_rating=review_rating,
-            moview_rating=movie_rating
-        )
-
     def add_review(
         self,
         username: str,
@@ -211,16 +161,11 @@ class Mongo(Storage):
 
     def add_review_rating(self, review_id: t.Any, username: str, rating: int):
         try:
-            with self.db.client.start_session() as session:
-                with session.start_transaction():
-                    self.ratings.add(
-                        object_id=ObjectId(review_id),
-                        object_type=ObjectType.REVIEW,
-                        username=username,
-                        rating=rating
-                    )
-                    self.update_review({
-                        "_id": ObjectId(review_id)
-                    })
+            self.ratings.add(
+                object_id=ObjectId(review_id),
+                object_type=ObjectType.REVIEW,
+                username=username,
+                rating=rating
+            )
         except DuplicateKeyError:
             raise DuplicateError()
