@@ -28,6 +28,7 @@ jobs:
       - name: Analysing code with mypy
         run: |
           export MYPYPATH=src/
-          mypy --install-types -r ugc/requirements.txt
+          mypy --types-requirements ugc > requirements.txt
+          pip3 install -r requirements.txt
           mypy etl --ignore-missing-imports --follow-imports=skip
           mypy ugc --ignore-missing-imports --follow-imports=skip
