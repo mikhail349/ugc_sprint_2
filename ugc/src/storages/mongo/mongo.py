@@ -1,5 +1,5 @@
 from bson import ObjectId
-from typing import Any
+import typing as t
 import uuid
 
 from pymongo.errors import DuplicateKeyError
@@ -115,17 +115,22 @@ class Mongo(Storage):
                     "creator": username
                 })
 
-    def get_rating(self, movie_id: uuid.UUID, username: str) -> int | None:
+    def get_rating(
+        self,
+        movie_id: uuid.UUID,
+        username: str
+    ) -> t.Union[int, None]:
         return self.ratings.get(
             object_id=movie_id,
             object_type=ObjectType.MOVIE,
             username=username
         )
 
-    def get_overall_rating(self, movie_id: uuid.UUID) -> float | None:
+    def get_overall_rating(self, movie_id: uuid.UUID) -> t.Union[float, None]:
         movie = self.movies.get(movie_id=movie_id)
         if movie:
             return movie["rating"]
+        return None
 
     def add_to_fav(self, movie_id: uuid.UUID, username: str) -> None:
         self.favs.add(movie_id=movie_id, username=username)
@@ -133,7 +138,7 @@ class Mongo(Storage):
     def delete_from_fav(self, movie_id: uuid.UUID, username: str) -> None:
         self.favs.delete(movie_id=movie_id, username=username)
 
-    def get_favs(self, username: str) -> list[uuid.UUID]:
+    def get_favs(self, username: str) -> t.List[uuid.UUID]:
         return self.favs.get(username=username)
 
     def get_review_movie_rating(
@@ -165,7 +170,7 @@ class Mongo(Storage):
             overall=overall_rating
         )
 
-    def update_review(self, filter: dict[str, str]):
+    def update_review(self, filter: t.Dict[str, t.Any]):
         """Обновить рецензию:
 
         - рейнтинг фильма (общий, авторский)
@@ -193,7 +198,12 @@ class Mongo(Storage):
             moview_rating=movie_rating
         )
 
-    def add_review(self, username: str, movie_id: uuid.UUID, text: str) -> Any:
+    def add_review(
+        self,
+        username: str,
+        movie_id: uuid.UUID,
+        text: str
+    ) -> t.Any:
         with self.db.client.start_session() as session:
             with session.start_transaction():
                 try:
@@ -216,15 +226,15 @@ class Mongo(Storage):
     def get_reviews(
         self,
         movie_id: uuid.UUID,
-        sort: ReviewSort = None
-    ) -> list[Review]:
+        sort: t.Optional[ReviewSort] = None
+    ) -> t.List[Review]:
         reviews = self.reviews.get_list(
             movie_id=movie_id,
             sort=sort
         )
-        return [Review(**review).dict() for review in reviews]
+        return [Review(**review) for review in reviews]
 
-    def add_review_rating(self, review_id: Any, username: str, rating: int):
+    def add_review_rating(self, review_id: t.Any, username: str, rating: int):
         with self.db.client.start_session() as session:
             with session.start_transaction():
                 try:

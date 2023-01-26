@@ -27,7 +27,8 @@ class Mongo(Storage):
     def init_collections(self):
         """Инициализировать коллекции."""
         def get_collection(name: str) -> MongoCollection:
-            """Получить коллецию MongoDB с настроенным кодеком для работы с UUID.
+            """Получить коллецию MongoDB с настроенным кодеком
+            для работы с UUID.
 
             Args:
                 name: название

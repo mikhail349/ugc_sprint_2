@@ -11,7 +11,7 @@ from src.storages.mongo.collections.base import BaseCollection
 from src.models.rating import LikeDislikeRating, MovieRating
 
 
-def get_review_sort_query(sort: ReviewSort) -> dict:
+def get_review_sort_query(sort: ReviewSort) -> t.Dict:
     """Получить mongo-запрос для сортировки рецензий.
 
     Args:
@@ -98,7 +98,7 @@ class ReviewsCollection(BaseCollection):
             }
         )
 
-    def get(self, filter: dict[str, str]) -> dict | None:
+    def get(self, filter: t.Dict[str, str]) -> t.Union[t.Dict, None]:
         """Получить данные рецензии.
 
         Args:
@@ -113,7 +113,7 @@ class ReviewsCollection(BaseCollection):
     def get_list(
         self,
         movie_id: uuid.UUID,
-        sort: ReviewSort = None
+        sort: t.Optional[ReviewSort] = None
     ) -> list:
         """Получить отсортированный список рецензий фильма.
 
