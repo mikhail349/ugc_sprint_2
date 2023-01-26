@@ -44,6 +44,16 @@ class ETLConfig(BaseConfig):
     """Максимальное время секундах до загрузки данных в clickhouse."""
 
 
+class LoggerConfig(BaseConfig):
+    """Настройки логирования."""
+
+    file: str = Field("logs/app.log", env="LOG_FILE")
+    """Имя файла для записи логов."""
+    file_max_bytes: int = Field(1000, env="LOG_FILE_MAX_BYTES")
+    """Максимальный размер файла для записи логов."""
+
+
 kafka_config = KafkaConfig()
 clickhouse_config = ClickhouseConfig()
 etl_config = ETLConfig()
+logger_config = LoggerConfig()

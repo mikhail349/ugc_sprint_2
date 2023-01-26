@@ -11,8 +11,14 @@ filebeat.inputs:
   - type: log
     enabled: true
     paths:
-      - /app/logs/*
+      - /ugc/logs/*
     tags: [ 'ugc' ]
+
+  - type: log
+    enabled: true
+    paths:
+      - /etl/logs/*
+    tags: [ 'etl' ]
 
 output.logstash:
   enabled: true
