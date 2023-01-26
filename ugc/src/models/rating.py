@@ -1,10 +1,12 @@
+import typing as t
+
 from pydantic import BaseModel
 
 
 class MovieRating(BaseModel):
     """Модель рейтингов фильма."""
-    creator: int = None
-    overall: float = None
+    creator: t.Optional[int] = None
+    overall: t.Optional[float] = None
 
 
 class LikeDislikeRating(BaseModel):
