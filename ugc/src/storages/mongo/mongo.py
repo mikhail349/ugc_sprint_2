@@ -8,7 +8,6 @@ from pymongo.database import Database as MongoDatabase
 from src.storages.base import Storage, ReviewSort
 from src.storages.errors import DuplicateError
 from src.storages.mongo.collections.favs import FavsCollection
-from src.storages.mongo.collections.movies import MoviesCollection
 from src.storages.mongo.collections.reviews import ReviewsCollection
 from src.storages.mongo.collections.ratings import RatingsCollection, \
                                                    ObjectType
@@ -23,7 +22,6 @@ class Mongo(Storage):
         db: база данных Mongo
         favs: коллекция избранных фильмов
         ratings: коллекция оценок
-        movies: коллекция фильмов
         reviews: коллекция рецензий
 
     """
@@ -33,30 +31,12 @@ class Mongo(Storage):
         db: MongoDatabase,
         favs: FavsCollection,
         ratings: RatingsCollection,
-        movies: MoviesCollection,
         reviews: ReviewsCollection
     ) -> None:
         self.db = db
         self.favs = favs
         self.ratings = ratings
-        self.movies = movies
         self.reviews = reviews
-
-    def update_movie(self, movie_id: uuid.UUID):
-        """Обновить рейнтинг фильма.
-
-        Args:
-            movie_id: ИД фильма
-
-        """
-        rating = self.ratings.get_aggregated_rating(
-            object_id=movie_id,
-            object_type=ObjectType.MOVIE
-        )
-        self.movies.update(
-            movie_id=movie_id,
-            rating=rating
-        )
 
     def add_rating(
         self,
@@ -73,7 +53,6 @@ class Mongo(Storage):
                         username=username,
                         rating=rating
                     )
-                    self.update_movie(movie_id=movie_id)
                     self.update_review({
                         "movie_id": movie_id,
                         "creator": username
@@ -95,7 +74,6 @@ class Mongo(Storage):
                     username=username,
                     rating=rating
                 )
-                self.update_movie(movie_id=movie_id)
                 self.update_review({
                     "movie_id": movie_id,
                     "creator": username
@@ -109,7 +87,6 @@ class Mongo(Storage):
                     object_type=ObjectType.MOVIE,
                     username=username
                 )
-                self.update_movie(movie_id=movie_id)
                 self.update_review({
                     "movie_id": movie_id,
                     "creator": username
@@ -127,10 +104,10 @@ class Mongo(Storage):
         )
 
     def get_overall_rating(self, movie_id: uuid.UUID) -> t.Union[float, None]:
-        movie = self.movies.get(movie_id=movie_id)
-        if movie:
-            return movie["rating"]
-        return None
+        return self.ratings.get_aggregated_rating(
+            object_id=movie_id,
+            object_type=ObjectType.MOVIE
+        )
 
     def add_to_fav(self, movie_id: uuid.UUID, username: str) -> None:
         self.favs.add(movie_id=movie_id, username=username)
@@ -204,24 +181,22 @@ class Mongo(Storage):
         movie_id: uuid.UUID,
         text: str
     ) -> t.Any:
-        with self.db.client.start_session() as session:
-            with session.start_transaction():
-                try:
-                    review_rating = LikeDislikeRating()
-                    movie_rating = self.get_review_movie_rating(
-                        movie_id=movie_id,
-                        username=username
-                    )
+        try:
+            review_rating = LikeDislikeRating()
+            movie_rating = self.get_review_movie_rating(
+                movie_id=movie_id,
+                username=username
+            )
 
-                    return self.reviews.add(
-                        text=text,
-                        movie_id=movie_id,
-                        username=username,
-                        review_rating=review_rating,
-                        moview_rating=movie_rating
-                    )
-                except DuplicateKeyError:
-                    raise DuplicateError()
+            return self.reviews.add(
+                text=text,
+                movie_id=movie_id,
+                username=username,
+                review_rating=review_rating,
+                moview_rating=movie_rating
+            )
+        except DuplicateKeyError:
+            raise DuplicateError()
 
     def get_reviews(
         self,
@@ -235,9 +210,9 @@ class Mongo(Storage):
         return [Review(**review) for review in reviews]
 
     def add_review_rating(self, review_id: t.Any, username: str, rating: int):
-        with self.db.client.start_session() as session:
-            with session.start_transaction():
-                try:
+        try:
+            with self.db.client.start_session() as session:
+                with session.start_transaction():
                     self.ratings.add(
                         object_id=ObjectId(review_id),
                         object_type=ObjectType.REVIEW,
@@ -247,5 +222,5 @@ class Mongo(Storage):
                     self.update_review({
                         "_id": ObjectId(review_id)
                     })
-                except DuplicateKeyError:
-                    raise DuplicateError()
+        except DuplicateKeyError:
+            raise DuplicateError()
