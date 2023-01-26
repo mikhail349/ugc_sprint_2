@@ -11,10 +11,10 @@ COPY requirements.txt requirements.txt
 RUN  pip install --upgrade pip \
      && pip install -r requirements.txt --no-cache-dir
 
+RUN mkdir /app/logs
+
 RUN groupadd -r app \
     && useradd -d /app -r -g app app
-
-USER app
 
 COPY --chown=app:app . .
 
