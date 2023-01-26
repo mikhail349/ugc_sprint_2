@@ -1,5 +1,9 @@
 import logging
 from flask import request
+from logging.handlers import RotatingFileHandler
+from src.configs.logger import logger_config
+
+logger = logging.getLogger(__name__)
 
 
 class RequestIdFilter(logging.Filter):
@@ -13,8 +17,9 @@ class RequestIdFilter(logging.Filter):
 
 def init_logger():
     """Инициализировать логирование."""
+    global logger
     logging.basicConfig(
-        filename="logs/app.log",
+        filename=logger_config.file,
         level=logging.INFO,
         filemode="w",
         format="%(name)s - %(levelname)s - %(message)s",
@@ -22,7 +27,9 @@ def init_logger():
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     logger.addFilter(RequestIdFilter())
+    handler = RotatingFileHandler(
+        logger_config.file,
+        maxBytes=logger_config.file_max_bytes
+    )
+    logger.addHandler(handler)
     return logger
-
-
-logger = init_logger()

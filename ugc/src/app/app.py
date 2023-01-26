@@ -1,5 +1,5 @@
 import sentry_sdk
-from flask import Blueprint, Flask, request
+from flask import Blueprint, Flask
 from src.api.v1.movies import movies
 from src.api.v1.openapi import openapi
 from src.configs.sentry import sentry_config
@@ -21,6 +21,7 @@ sentry_sdk.init(
 init_auth(app)
 init_streamer(app)
 init_storage(app)
+init_logger()
 
 
 api = Blueprint("api", __name__, url_prefix="/api")

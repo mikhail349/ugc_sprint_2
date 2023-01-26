@@ -6,6 +6,7 @@ services:
       - ./ugc/.env
     volumes:
       - ${HOST_JWT_PUBLIC_KEY_PATH}:${JWT_PUBLIC_KEY_PATH}:ro
+      - ./logs:/app/logs
     depends_on:
       - kafka
       - kafka-2
@@ -59,6 +60,7 @@ services:
     command: filebeat -e -strict.perms=false
     volumes:
       - /tmp/logs/nginx:/var/log/nginx:ro
+      - ./logs:/app/logs
       - ./deploy/filebeat.yml:/usr/share/filebeat/filebeat.yml
     depends_on:
       - app
