@@ -3,7 +3,7 @@ from bson.codec_options import CodecOptions
 from bson.binary import UuidRepresentation
 from bson import ObjectId
 import datetime
-from typing import Any
+from typing import Any, Optional
 import enum
 
 import pymongo
@@ -11,7 +11,7 @@ from pymongo.collection import Collection as MongoCollection
 from pymongo.errors import DuplicateKeyError
 
 from src.storages.base import Storage, ReviewSort
-from src.configs.mongo import mongo_config
+
 from src.storages.errors import DuplicateError, DoesNotExistError
 from src.models.review import Review
 
@@ -41,13 +41,18 @@ def get_review_sort_query(sort: ReviewSort) -> dict:
 
 
 class Mongo(Storage):
-    """Хранилище Mongo."""
+    """Хранилище Mongo.
 
-    def __init__(self) -> None:
-        self.client = pymongo.MongoClient(
-            f"mongodb://{mongo_config.host}:{mongo_config.port}"
-        )
-        self.db = self.client[mongo_config.db]
+    Args:
+        host: хост
+        port: порт
+        db: база данных
+
+    """
+
+    def __init__(self, host: str, port: int, db: str) -> None:
+        self.client = pymongo.MongoClient(f"mongodb://{host}:{port}")
+        self.db = self.client[db]
         self.init_collections()
 
     def init_collections(self):
@@ -317,7 +322,7 @@ class Mongo(Storage):
             "dislikes": result[0]["dislikes"] if result else 0
         }
 
-    def update_review(self, filter: dict[str, str]):
+    def update_review(self, filter: dict[str, str | uuid.UUID]):
         """Обновить рецензию:
         - рейнтинг фильма (общий, авторский)
         - оценки рецензии (лайки, дизлайки)
@@ -330,7 +335,7 @@ class Mongo(Storage):
         if not review:
             return
 
-        self.reviews.find_one_and_update(
+        self.reviews.update_one(
             {
                 "_id": review["_id"]
             },
@@ -372,7 +377,7 @@ class Mongo(Storage):
     def get_reviews(
         self,
         movie_id: uuid.UUID,
-        sort: ReviewSort = None
+        sort: Optional[ReviewSort] = None
     ) -> list:
         pipeline = [
             {
