@@ -150,7 +150,7 @@ class Storage(ABC):
         movie_id: uuid.UUID,
         sort: t.Optional[ReviewSort] = None
     ) -> t.List[Review]:
-        """Получить список рецензий к фильму.
+        """Получить список рецензий фильма.
 
         Args:
             movie_id: ИД фильма
