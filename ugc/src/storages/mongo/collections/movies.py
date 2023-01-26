@@ -21,7 +21,7 @@ class MoviesCollection(BaseCollection):
             unique=True
         )
 
-    def get(self, movie_id: uuid.UUID) -> dict | None:
+    def get(self, movie_id: uuid.UUID) -> t.Union[t.Dict, None]:
         """Получить данные фильма.
 
         Args:
