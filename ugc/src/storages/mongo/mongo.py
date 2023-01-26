@@ -11,7 +11,6 @@ from src.storages.mongo.collections.reviews import ReviewsCollection
 from src.storages.mongo.collections.ratings import RatingsCollection, \
                                                    ObjectType
 from src.models.review import Review
-from src.models.rating import LikeDislikeRating, MovieRating
 
 
 class Mongo(Storage):
@@ -96,35 +95,6 @@ class Mongo(Storage):
     def get_favs(self, username: str) -> t.List[uuid.UUID]:
         return self.favs.get(username=username)
 
-    def get_review_movie_rating(
-        self,
-        movie_id: uuid.UUID,
-        username: str
-    ) -> MovieRating:
-        """"Получить рейтинги фильма для рецензии.
-
-        Args:
-            movie_id: ИД фильма
-            username: имя пользователя
-
-        Returns:
-            MovieRating: модель с оценкой автора и общей
-
-        """
-        creator_rating = self.ratings.get(
-            object_id=movie_id,
-            object_type=ObjectType.MOVIE,
-            username=username
-        )
-        overall_rating = self.ratings.get_aggregated_rating(
-            object_id=movie_id,
-            object_type=ObjectType.MOVIE
-        )
-        return MovieRating(
-            creator=creator_rating,
-            overall=overall_rating
-        )
-
     def add_review(
         self,
         username: str,
@@ -132,18 +102,10 @@ class Mongo(Storage):
         text: str
     ) -> t.Any:
         try:
-            review_rating = LikeDislikeRating()
-            movie_rating = self.get_review_movie_rating(
-                movie_id=movie_id,
-                username=username
-            )
-
             return self.reviews.add(
                 text=text,
                 movie_id=movie_id,
-                username=username,
-                review_rating=review_rating,
-                moview_rating=movie_rating
+                username=username
             )
         except DuplicateKeyError:
             raise DuplicateError()
