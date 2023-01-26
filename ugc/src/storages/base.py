@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Optional
 import uuid
 import enum
 
@@ -148,7 +148,7 @@ class Storage(ABC):
     def get_reviews(
         self,
         movie_id: uuid.UUID,
-        sort: ReviewSort = None
+        sort: Optional[ReviewSort] = None
     ) -> list[Review]:
         """Получить список рецензий к фильму.
 

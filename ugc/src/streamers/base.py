@@ -1,3 +1,4 @@
+import uuid
 from abc import ABC, abstractmethod
 
 
@@ -5,7 +6,7 @@ class Streamer(ABC):
     """Абстрактный стример событий."""
 
     @abstractmethod
-    def send_view(self, username: str, movie_id: str, timestamp: int):
+    def send_view(self, username: str, movie_id: uuid.UUID, timestamp: int):
         """Отправить событие просмотра.
 
         Args:
