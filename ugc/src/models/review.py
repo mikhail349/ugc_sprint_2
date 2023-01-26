@@ -4,17 +4,7 @@ import uuid
 
 from pydantic import BaseModel, Field
 
-
-class MovieRating(BaseModel):
-    """Модель рейтингов фильма."""
-    creator: Optional[int] = None
-    overall: Optional[float] = None
-
-
-class ReviewRating(BaseModel):
-    """Модель рейтингов рецензии."""
-    likes: int
-    dislikes: int
+from src.models.rating import MovieRating, LikeDislikeRating
 
 
 class Review(BaseModel):
@@ -25,4 +15,4 @@ class Review(BaseModel):
     text: str
     created_at: datetime.datetime
     movie_rating: MovieRating
-    review_rating: ReviewRating
+    review_rating: LikeDislikeRating
