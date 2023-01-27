@@ -28,7 +28,7 @@ jobs:
       - name: Analysing code with mypy
         run: |
           export MYPYPATH=src/
-          pip3 install types-PyYAML==6.0.12.3
+          pip3 install types-PyYAML==6.0.12.3 types-redis==4.4.0.3
           mypy etl --ignore-missing-imports --follow-imports=skip
           mypy ugc --ignore-missing-imports --follow-imports=skip
   notification:

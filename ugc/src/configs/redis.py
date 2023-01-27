@@ -12,7 +12,7 @@ class RedisConfig(BaseConfig):
     """Номер порта."""
     db: int = Field(0, env="REDIS_DB")
     """Номер БД."""
-    cache_expires: str = Field(60, env="REDIS_CACHE_EXPIRES")
+    cache_expires: int = Field(60, env="REDIS_CACHE_EXPIRES")
     """Кол-во секунд хранения кэша."""
 
 
