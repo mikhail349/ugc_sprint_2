@@ -20,8 +20,10 @@ class Redis(Cache):
         self.cache_expires = cache_expires
 
     def get(self, key: str) -> t.Optional[t.Any]:
-        data = self.redis.get(key)
-        return json.loads(data)
+        data: t.Union[str, None] = self.redis.get(key)
+        if data:
+            return json.loads(data)
+        return None
 
     def put(self, key: str, value: t.Any):
         self.redis.set(
