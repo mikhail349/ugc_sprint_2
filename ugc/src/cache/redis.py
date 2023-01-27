@@ -1,4 +1,5 @@
 import typing as t
+import json
 
 import redis
 
@@ -19,7 +20,12 @@ class Redis(Cache):
         self.cache_expires = cache_expires
 
     def get(self, key: str) -> t.Optional[t.Any]:
-        return self.redis.get(key)
+        data = self.redis.get(key)
+        return json.loads(data)
 
     def put(self, key: str, value: t.Any):
-        self.redis.set(key, value, ex=self.cache_expires)
+        self.redis.set(
+            key,
+            json.dumps(value, default=str),
+            ex=self.cache_expires
+        )

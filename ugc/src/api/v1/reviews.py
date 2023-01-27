@@ -1,7 +1,6 @@
 from http import HTTPStatus
 import uuid
 from typing import Any
-import json
 
 from flask import Response, jsonify, request, make_response
 from flask_restful import Resource
@@ -47,14 +46,11 @@ class Review(StorageMixin, CacheMixin, Resource):
         key = f"reviews_by={movie_id}_sort={sort}"
         cache = self.cache.get(key)
         if cache:
-            return jsonify(json.loads(cache))
+            return jsonify(cache)
 
         reviews = self.storage.get_reviews(movie_id=movie_id, sort=sort)
         reviews_dict = [review.dict() for review in reviews]
-        self.cache.put(
-            key=key,
-            value=json.dumps(reviews_dict, default=str)
-        )
+        self.cache.put(key=key, value=reviews_dict)
 
         return jsonify(reviews_dict)
 

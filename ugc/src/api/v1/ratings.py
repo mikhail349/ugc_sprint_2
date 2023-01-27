@@ -1,6 +1,5 @@
 from http import HTTPStatus
 import uuid
-import json
 
 from flask import request, Response, jsonify, make_response
 from flask_restful import Resource
@@ -93,7 +92,7 @@ class OverallRating(StorageMixin, CacheMixin, Resource):
         key = f"movie={movie_id}"
         cache = self.cache.get(key)
         if cache:
-            return jsonify(json.loads(cache))
+            return jsonify(cache)
 
         result = self.storage.get_overall_rating(movie_id=movie_id)
         response = {
@@ -101,6 +100,6 @@ class OverallRating(StorageMixin, CacheMixin, Resource):
         }
         self.cache.put(
             key=key,
-            value=json.dumps(response)
+            value=response
         )
         return jsonify(response)
