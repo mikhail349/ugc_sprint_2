@@ -2,6 +2,7 @@ from flask import current_app
 
 from src.storages.base import Storage
 from src.streamers.base import Streamer
+from src.cache.base import Cache
 from src.services.auth import username_required
 
 
@@ -25,3 +26,10 @@ class LoginMixin:
     def __init__(self, username: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.username = username
+
+
+class CacheMixin:
+    """Миксин, добавляющий в класс атрибут cache."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cache: Cache = current_app.config.get("cache")

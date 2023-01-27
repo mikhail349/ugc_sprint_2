@@ -8,12 +8,12 @@ from flask_restful import Resource
 from src.storages.errors import DuplicateError
 from src.storages.base import ReviewSort
 from src.api.v1 import messages as msg
-from src.api.mixins import StorageMixin, LoginMixin, StreamerMixin
+from src.api.mixins import StorageMixin, LoginMixin, StreamerMixin, CacheMixin
 from src.services.auth import username_required
 from src.services.logger import logger
 
 
-class Review(StorageMixin, Resource):
+class Review(StorageMixin, CacheMixin, Resource):
     """API ресурс по работе с рецензиями."""
 
     @username_required
@@ -43,8 +43,16 @@ class Review(StorageMixin, Resource):
             ReviewSort(request.args.get("sort"))
             if "sort" in request.args else None
         )
+        key = f"reviews_by={movie_id}_sort={sort}"
+        cache = self.cache.get(key)
+        if cache:
+            return jsonify(cache)
+
         reviews = self.storage.get_reviews(movie_id=movie_id, sort=sort)
-        return jsonify([review.dict() for review in reviews])
+        reviews_dict = [review.dict() for review in reviews]
+        self.cache.put(key=key, value=reviews_dict)
+
+        return jsonify(reviews_dict)
 
 
 class ReviewRating(LoginMixin, StorageMixin, StreamerMixin, Resource):
