@@ -7,6 +7,7 @@ from src.services.auth import init_auth
 from src.services.logger import init_logger
 from src.services.storage import init_storage
 from src.services.streamer import init_streamer
+from src.services.cache import init_cache
 from src.utils.encoders import JSONEncoder
 
 app = Flask(__name__)
@@ -21,6 +22,7 @@ sentry_sdk.init(
 init_auth(app)
 init_streamer(app)
 init_storage(app)
+init_cache(app)
 init_logger()
 
 

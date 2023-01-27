@@ -71,6 +71,9 @@ services:
       - logstash
       - elasticsearch
       - kibana
+  redis:
+    image: redis:alpine
+    restart: always
   # Mongo
   router01:
     image: mongo:latest

@@ -12,3 +12,4 @@ python-dotenv==0.21.0
 backoff==2.2.1
 pymongo==4.3.3
 sentry_sdk==1.14.0
+redis==4.4.2

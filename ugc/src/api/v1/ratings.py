@@ -1,12 +1,13 @@
 from http import HTTPStatus
 import uuid
+import json
 
 from flask import request, Response, jsonify, make_response
 from flask_restful import Resource
 
 from src.storages.errors import DuplicateError, DoesNotExistError
 from src.api.v1 import messages as msg
-from src.api.mixins import StorageMixin, LoginMixin
+from src.api.mixins import StorageMixin, LoginMixin, CacheMixin
 from src.services.logger import logger
 
 
@@ -83,11 +84,23 @@ class Rating(LoginMixin, StorageMixin, Resource):
         return jsonify(rating=result)
 
 
-class OverallRating(StorageMixin, Resource):
+class OverallRating(StorageMixin, CacheMixin, Resource):
     """API ресурс по работе с общей оценкой фильма."""
 
     def get(self, movie_id: uuid.UUID):
         """Получить общую оценку фильма."""
 
+        key = f"movie={movie_id}"
+        cache = self.cache.get(key)
+        if cache:
+            return jsonify(json.loads(cache))
+
         result = self.storage.get_overall_rating(movie_id=movie_id)
-        return jsonify(rating=result)
+        response = {
+            "rating": result
+        }
+        self.cache.put(
+            key=key,
+            value=json.dumps(response)
+        )
+        return jsonify(response)
