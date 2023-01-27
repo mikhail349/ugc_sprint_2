@@ -21,7 +21,7 @@ class Redis(Cache):
 
     def get(self, key: str) -> t.Optional[t.Any]:
         data: t.Union[str, None] = self.redis.get(key)
-        if data:
+        if data is not None:
             return json.loads(data)
         return None
 
