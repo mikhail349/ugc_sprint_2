@@ -79,6 +79,8 @@ services:
     volumes:
       - ./deploy/mongodb:/scripts
       - mongodb_cluster_router01:/data/db
+    depends_on:
+      - configsvr01
   configsvr01:
     image: mongo:latest
     container_name: mongo-config-01 

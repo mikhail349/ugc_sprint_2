@@ -194,8 +194,8 @@ class RatingsCollection(BaseCollection):
             },
             {
                 "$project": {
-                    "likes": {"$cond": [{"$eq": ['$rating', 10]}, 1, 0]},
-                    "dislikes": {"$cond": [{"$eq": ['$rating', 0]}, 1, 0]},
+                    "likes": {"$cond": [{"$eq": ["$rating", 10]}, 1, 0]},
+                    "dislikes": {"$cond": [{"$eq": ["$rating", 0]}, 1, 0]},
                 }
             },
             {
