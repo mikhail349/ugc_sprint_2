@@ -360,7 +360,7 @@ paths:
                 example: [6ffefd8e-a018-e811-bbf9-60f67727d806]
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-  /movies/{movie_id}/reviews/{review_id}/ratings:
+  /movies/reviews/{review_id}/ratings:
     post:
       tags:
         - рецензии
@@ -368,7 +368,6 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/movieID'
         - $ref: '#/components/parameters/reviewID'
       requestBody:
         content:

@@ -18,4 +18,4 @@ api.add_resource(FavMovie, "/<movie_id>/favs")
 api.add_resource(FavMovieList, "/favs")
 
 api.add_resource(Review, "/<movie_id>/reviews")
-api.add_resource(ReviewRating, "/<movie_id>/reviews/<review_id>/ratings")
+api.add_resource(ReviewRating, "/reviews/<review_id>/ratings")
