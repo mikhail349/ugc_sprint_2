@@ -58,7 +58,7 @@ class Review(StorageMixin, CacheMixin, Resource):
 class ReviewRating(LoginMixin, StorageMixin, StreamerMixin, Resource):
     """API ресурс по работе с оценками рецензий."""
 
-    def post(self, movie_id: uuid.UUID, review_id: Any):
+    def post(self, review_id: Any):
         """Поставить оценку рецензии."""
         rating = request.json.get("rating")
         try:
