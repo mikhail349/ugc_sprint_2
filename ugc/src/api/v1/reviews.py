@@ -30,7 +30,8 @@ class Review(StorageMixin, CacheMixin, Resource):
             logger.info("Review is created")
             return jsonify(id=review_id)
         except DuplicateError:
-            return jsonify(msg=msg.REVIEW_EXISTS), HTTPStatus.BAD_REQUEST
+            return make_response(jsonify(msg=msg.REVIEW_EXISTS),
+                                 HTTPStatus.BAD_REQUEST)
 
     def get(self, movie_id: uuid.UUID):
         """Получить список рецензий.

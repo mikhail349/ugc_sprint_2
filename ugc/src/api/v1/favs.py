@@ -1,7 +1,7 @@
 from http import HTTPStatus
 import uuid
 
-from flask import Response, jsonify
+from flask import Response, jsonify, make_response
 from flask_restful import Resource
 
 from src.storages.errors import DuplicateError
@@ -20,8 +20,8 @@ class FavMovie(LoginMixin, StorageMixin, Resource):
             self.storage.add_to_fav(movie_id=movie_id, username=self.username)
             logger.info("Movie is added to favourites")
         except DuplicateError:
-            return jsonify(msg=msg.FAV_MOVIE_EXISTS), HTTPStatus.BAD_REQUEST
-
+            return make_response(jsonify(msg=msg.FAV_MOVIE_EXISTS),
+                                 HTTPStatus.BAD_REQUEST)
         return Response(status=HTTPStatus.OK)
 
     def delete(self, movie_id: uuid.UUID):
