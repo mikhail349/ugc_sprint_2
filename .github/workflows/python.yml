@@ -31,6 +31,12 @@ jobs:
           pip3 install types-PyYAML==6.0.12.3 types-redis==4.4.0.3
           mypy etl --ignore-missing-imports --follow-imports=skip
           mypy ugc --ignore-missing-imports --follow-imports=skip
+      - name: Run tests
+        run: |
+          mkdir logs
+          pip install -r ugc/requirements.txt
+          pip install -r tests/requirements.txt
+          PYTHONPATH="ugc" python -m pytest tests/
   notification:
     runs-on: ubuntu-latest
     needs: [build]
