@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-import typing as t
+from typing import Optional, Any
 
 
 class Cache(ABC):
     """Абстрактный класс хранилища кеша."""
 
     @abstractmethod
-    def get(self, key: str) -> t.Optional[t.Any]:
+    def get(self, key: str) -> Optional[Any]:
         """Получить данные по ключу из кэша.
 
         Args:
@@ -18,7 +18,7 @@ class Cache(ABC):
         """
 
     @abstractmethod
-    def put(self, key: str, value: t.Any):
+    def put(self, key: str, value: Any):
         """Записать данные в кэш.
 
         Args:

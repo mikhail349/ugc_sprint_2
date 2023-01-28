@@ -1,4 +1,4 @@
-import typing as t
+from typing import Any, Union, Optional
 import json
 
 import redis
@@ -19,13 +19,13 @@ class Redis(Cache):
         self.redis = redis
         self.cache_expires = cache_expires
 
-    def get(self, key: str) -> t.Optional[t.Any]:
-        data: t.Union[str, None] = self.redis.get(key)
+    def get(self, key: str) -> Optional[Any]:
+        data: Union[str, None] = self.redis.get(key)
         if data is not None:
             return json.loads(data)
         return None
 
-    def put(self, key: str, value: t.Any):
+    def put(self, key: str, value: Any):
         self.redis.set(
             key,
             json.dumps(value, default=str),

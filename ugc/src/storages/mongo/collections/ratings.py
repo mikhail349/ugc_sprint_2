@@ -1,5 +1,5 @@
 import enum
-import typing as t
+from typing import Any, Union
 
 from pymongo.database import Database as MongoDatabase
 import pymongo
@@ -35,7 +35,7 @@ class RatingsCollection(BaseCollection):
 
     def add(
         self,
-        object_id: t.Any,
+        object_id: Any,
         object_type: ObjectType,
         username: str,
         rating: int
@@ -58,7 +58,7 @@ class RatingsCollection(BaseCollection):
 
     def edit(
         self,
-        object_id: t.Any,
+        object_id: Any,
         object_type: ObjectType,
         username: str,
         rating: int
@@ -89,7 +89,7 @@ class RatingsCollection(BaseCollection):
 
     def delete(
         self,
-        object_id: t.Any,
+        object_id: Any,
         object_type: ObjectType,
         username: str
     ):
@@ -111,10 +111,10 @@ class RatingsCollection(BaseCollection):
 
     def get(
         self,
-        object_id: t.Any,
+        object_id: Any,
         object_type: ObjectType,
         username: str
-    ) -> t.Union[int, None]:
+    ) -> Union[int, None]:
         """Получить оценку пользователя.
 
         Args
@@ -137,9 +137,9 @@ class RatingsCollection(BaseCollection):
 
     def get_aggregated_rating(
         self,
-        object_id: t.Any,
+        object_id: Any,
         object_type: ObjectType
-    ) -> t.Union[float, None]:
+    ) -> Union[float, None]:
         """Получить агрегированную оценку.
 
         Args
@@ -172,7 +172,7 @@ class RatingsCollection(BaseCollection):
 
     def get_likes_dislikes_count(
         self,
-        object_id: t.Any,
+        object_id: Any,
         object_type: ObjectType
     ) -> LikeDislikeRating:
         """Получить количество лайков и дизлайков.
