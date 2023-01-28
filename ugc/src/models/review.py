@@ -1,4 +1,4 @@
-import typing as t
+from typing import Any, Optional
 import datetime
 import uuid
 
@@ -9,10 +9,10 @@ from src.models.rating import MovieRating, LikeDislikeRating
 
 class Review(BaseModel):
     """Модель рецензии."""
-    id: t.Any = Field(alias="_id")
+    id: Any = Field(alias="_id")
     creator: str
     movie_id: uuid.UUID
     text: str
     created_at: datetime.datetime
-    movie_rating: t.Optional[MovieRating] = None
-    review_rating: t.Optional[LikeDislikeRating] = None
+    movie_rating: Optional[MovieRating] = None
+    review_rating: Optional[LikeDislikeRating] = None

@@ -1,4 +1,4 @@
-import typing as t
+from typing import List
 
 from pydantic import Field, Required
 
@@ -7,7 +7,7 @@ from src.configs.base import BaseConfig
 
 class JWTConfig(BaseConfig):
     """Настройки JWT."""
-    jwt_token_location: t.List[str] = ["headers"]
+    jwt_token_location: List[str] = ["headers"]
     """Секция запроса с токеном."""
     jwt_access_token_expires: int = Field(3600, env="JWT_ACCESS_TOKEN_EXPIRES")
     """Срок жизни access-токена (секунд)."""

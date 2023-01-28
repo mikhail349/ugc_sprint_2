@@ -1,4 +1,4 @@
-import typing as t
+from typing import Union, Dict, List, Optional
 import uuid
 from bson import ObjectId
 import datetime
@@ -11,7 +11,7 @@ from src.storages.mongo.collections.base import BaseCollection
 from src.storages.mongo.collections.ratings import ObjectType
 
 
-def get_review_sort_query(sort: ReviewSort) -> t.Dict:
+def get_review_sort_query(sort: ReviewSort) -> Dict:
     """Получить mongo-запрос для сортировки рецензий.
 
     Args:
@@ -67,7 +67,7 @@ class ReviewsCollection(BaseCollection):
         })
         return result.inserted_id
 
-    def get(self, filter: t.Dict[str, str]) -> t.Union[t.Dict, None]:
+    def get(self, filter: Dict[str, str]) -> Union[Dict, None]:
         """Получить данные рецензии.
 
         Args:
@@ -82,8 +82,8 @@ class ReviewsCollection(BaseCollection):
     def get_list(
         self,
         movie_id: uuid.UUID,
-        sort: t.Optional[ReviewSort] = None
-    ) -> list:
+        sort: Optional[ReviewSort] = None
+    ) -> List:
         """Получить отсортированный список рецензий фильма.
 
         Args:
