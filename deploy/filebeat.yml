@@ -12,13 +12,13 @@ filebeat.inputs:
     enabled: true
     paths:
       - /ugc/logs/*
-    tags: [ 'ugc' ]
+    tags: [ 'ugc', 'loglevel' ]
 
   - type: log
     enabled: true
     paths:
       - /etl/logs/*
-    tags: [ 'etl' ]
+    tags: [ 'etl', 'loglevel' ]
 
 output.logstash:
   enabled: true
