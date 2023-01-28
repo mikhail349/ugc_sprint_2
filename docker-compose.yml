@@ -35,6 +35,8 @@ services:
     environment:
       XPACK_MONITORING_ENABLED: "false"
       ES_HOST: "elasticsearch:9200"
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
     ports:
       - "5044:5044/udp"
     volumes:
